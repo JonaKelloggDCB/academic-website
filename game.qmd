@@ -1,0 +1,18 @@
+---
+title: "Pin the Headline"
+pagetitle: "Pin the Headline"
+---
+
+A small game about reading political approval curves. You see a leader's
+approval rating over time with the dates stripped, and a real headline from
+their tenure — can you pin it where it happened from the curve's shape alone?
+Wars rally, scandals slide, market panics fall off a cliff.
+
+Polling series are approximate reconstructions (Gallup, Ipsos MORI, YouGov,
+IFOP, Datafolha) and are for play, not citation.
+
+<iframe src="pin-the-headline/index.html" title="Pin the Headline game"
+  style="width:100%; height:1050px; border:0; border-radius:14px; background:#0b0d12;"
+  loading="lazy"></iframe>
+
+[Open the game full-screen →](pin-the-headline/index.html)

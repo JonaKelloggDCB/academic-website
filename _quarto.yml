@@ -1,6 +1,8 @@
 project:
   type: website
   output-dir: docs
+  resources:
+    - pin-the-headline/
 
 website:
   title: "Jonathan Kellogg"
@@ -15,6 +17,8 @@ website:
         text: Teaching
       - href: cv.qmd
         text: CV
+      - href: game.qmd
+        text: Game
   page-footer:
     left: "© 2026 Jonathan Tjaarda Kellogg"
     right:

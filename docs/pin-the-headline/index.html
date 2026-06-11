@@ -1,0 +1,1058 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pin the Headline</title>
+<style>
+  /* ---- Pin the Headline — self-contained styles (all scoped under .pth) ---- */
+  .pth {
+    --pth-bg: #11141a;
+    --pth-card: #1a1f29;
+    --pth-card-2: #222937;
+    --pth-ink: #eef1f6;
+    --pth-ink-dim: #9aa5b5;
+    --pth-line: #6ea8fe;
+    --pth-area: rgba(110, 168, 254, 0.12);
+    --pth-grid: rgba(255, 255, 255, 0.08);
+    --pth-pin: #ffd166;
+    --pth-true: #4ade80;
+    --pth-ghost: #8b93a3;
+    --pth-bad: #f87171;
+    --pth-radius: 14px;
+    --pth-focus: #ffd166;
+    color-scheme: dark;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--pth-ink);
+    background: var(--pth-bg);
+    border-radius: var(--pth-radius);
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 16px;
+    box-sizing: border-box;
+    line-height: 1.45;
+  }
+  .pth *, .pth *::before, .pth *::after { box-sizing: border-box; }
+
+  .pth-header { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+  .pth-title { font-size: 1.05rem; font-weight: 800; letter-spacing: 0.02em; margin: 0; }
+  .pth-title .pth-pin-emoji { margin-right: 6px; }
+  .pth-context { color: var(--pth-ink-dim); font-size: 0.85rem; font-weight: 600; }
+
+  .pth-back {
+    appearance: none; border: 0; background: none; color: var(--pth-ink-dim);
+    font-size: 0.8rem; font-weight: 700; cursor: pointer; padding: 2px 6px; border-radius: 6px;
+  }
+  .pth-back:hover { color: var(--pth-ink); }
+  .pth-back:focus-visible { outline: 2px solid var(--pth-focus); }
+
+  .pth-headline-card {
+    background: var(--pth-card);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: var(--pth-radius);
+    padding: 14px 16px;
+    margin-bottom: 12px;
+  }
+  .pth-kicker { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--pth-ink-dim); font-weight: 700; margin-bottom: 4px; }
+  .pth-headline { font-size: 1.12rem; font-weight: 700; margin: 0; }
+
+  .pth-chart-wrap { position: relative; background: var(--pth-card); border: 1px solid rgba(255,255,255,0.07); border-radius: var(--pth-radius); padding: 8px 8px 4px; }
+  .pth-svg { display: block; width: 100%; height: auto; touch-action: none; cursor: crosshair; border-radius: 8px; outline: none; }
+  .pth-svg:focus-visible { box-shadow: 0 0 0 3px var(--pth-focus); }
+  .pth-svg.pth-locked { cursor: default; }
+
+  .pth-hint { text-align: center; color: var(--pth-ink-dim); font-size: 0.8rem; padding: 4px 6px 8px; min-height: 1.4em; }
+
+  .pth-controls { display: flex; gap: 10px; align-items: center; justify-content: space-between; margin-top: 12px; flex-wrap: wrap; }
+  .pth-progress { display: flex; gap: 6px; align-items: center; }
+  .pth-dot { width: 11px; height: 11px; border-radius: 50%; background: var(--pth-card-2); border: 1px solid rgba(255,255,255,0.15); }
+  .pth-dot.pth-dot-current { border-color: var(--pth-pin); }
+  .pth-dot.pth-dot-g { background: #22c55e; border-color: #22c55e; }
+  .pth-dot.pth-dot-y { background: #eab308; border-color: #eab308; }
+  .pth-dot.pth-dot-b { background: #475569; border-color: #475569; }
+
+  .pth-btn {
+    appearance: none; border: 0; border-radius: 10px; padding: 10px 20px;
+    font-size: 0.95rem; font-weight: 800; cursor: pointer;
+    background: var(--pth-pin); color: #1c1500;
+    transition: transform 0.08s ease, opacity 0.15s ease;
+  }
+  .pth-btn:hover:not(:disabled) { transform: translateY(-1px); }
+  .pth-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  .pth-btn:focus-visible { outline: 3px solid var(--pth-focus); outline-offset: 2px; }
+  .pth-btn.pth-btn-ghost { background: var(--pth-card-2); color: var(--pth-ink); }
+
+  .pth-feedback {
+    margin-top: 12px; padding: 12px 16px; border-radius: var(--pth-radius);
+    background: var(--pth-card); border: 1px solid rgba(255,255,255,0.07);
+    display: none;
+  }
+  .pth-feedback.pth-show { display: block; animation: pth-rise 0.3s ease; }
+  @keyframes pth-rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  .pth-score-line { font-size: 1.05rem; font-weight: 800; margin: 0 0 4px; }
+  .pth-note { color: var(--pth-ink-dim); font-size: 0.9rem; margin: 0; }
+  .pth-note strong { color: var(--pth-ink); }
+
+  .pth-end { text-align: center; padding: 18px 10px 6px; }
+  .pth-end h2 { margin: 0 0 6px; font-size: 1.3rem; }
+  .pth-end-emoji { font-size: 1.5rem; letter-spacing: 0.15em; margin: 10px 0; }
+  .pth-end-total { font-size: 2.2rem; font-weight: 900; margin: 4px 0; }
+  .pth-end-stars { font-size: 1.2rem; margin-bottom: 8px; }
+  .pth-session { color: var(--pth-ink-dim); font-size: 0.82rem; margin: 8px 0 14px; }
+  .pth-end-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .pth-copied { color: var(--pth-true); font-size: 0.85rem; min-height: 1.3em; margin-top: 8px; }
+
+  /* ---- level-select menu ---- */
+  .pth-menu-intro { color: var(--pth-ink-dim); font-size: 0.92rem; margin: 2px 0 14px; }
+  .pth-menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .pth-level-btn {
+    appearance: none; text-align: left; cursor: pointer;
+    background: var(--pth-card); color: var(--pth-ink);
+    border: 1px solid rgba(255,255,255,0.07); border-radius: var(--pth-radius);
+    padding: 12px 14px; font: inherit;
+    transition: transform 0.08s ease, border-color 0.15s ease;
+  }
+  .pth-level-btn:hover { transform: translateY(-1px); border-color: var(--pth-pin); }
+  .pth-level-btn:focus-visible { outline: 3px solid var(--pth-focus); outline-offset: 2px; }
+  .pth-level-leader { font-weight: 800; font-size: 1rem; margin: 0 0 2px; }
+  .pth-level-context { color: var(--pth-ink-dim); font-size: 0.8rem; margin: 0 0 6px; }
+  .pth-level-tag {
+    display: inline-block; font-size: 0.68rem; font-weight: 800; text-transform: uppercase;
+    letter-spacing: 0.08em; padding: 2px 8px; border-radius: 999px;
+    background: var(--pth-card-2); color: var(--pth-ink-dim);
+  }
+  .pth-level-tag.pth-tag-tutorial { background: rgba(74, 222, 128, 0.15); color: var(--pth-true); }
+  .pth-level-tag.pth-tag-expert { background: rgba(248, 113, 113, 0.15); color: var(--pth-bad); }
+
+  .pth-sr { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+  @media (max-width: 480px) {
+    .pth { padding: 10px; }
+    .pth-headline { font-size: 1rem; }
+    .pth-btn { padding: 12px 18px; } /* bigger touch target */
+    .pth-menu-grid { grid-template-columns: 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .pth * { animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body style="margin:0; background:#0b0d12; padding:24px 8px;">
+
+<div id="pin-the-headline"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  var SITE_URL = "jonakelloggdcb.github.io/academic-website/pin-the-headline/";
+
+  /* =========================================================================
+     DATA — adding a level is pure data, no code changes.
+     Headline: { text, date (ISO, true answer), source?, note? }
+     Level:    { id, leader, context, difficulty?, series: [{date, approval}], headlines }
+
+     NOTE ON SERIES VALUES: all series are APPROXIMATE, reconstructed from
+     published polling (Gallup for US presidents; Ipsos MORI satisfaction for
+     Thatcher/Blair; YouGov/Opinium for Johnson/Truss; IFOP/Elabe composites
+     for Macron; Datafolha "ótimo/bom" for Bolsonaro). Shapes are faithful;
+     individual points should be replaced with sourced figures before citing.
+     ========================================================================= */
+  var DATA = [
+    {
+      id: "bush-2001-2009",
+      leader: "George W. Bush",
+      context: "United States · 2001–2009",
+      difficulty: "tutorial",
+      series: [
+        { date: "2001-01-20", approval: 57 },
+        { date: "2001-04-15", approval: 59 },
+        { date: "2001-09-10", approval: 51 },
+        { date: "2001-09-22", approval: 90 },
+        { date: "2001-11-15", approval: 87 },
+        { date: "2002-03-15", approval: 80 },
+        { date: "2002-09-15", approval: 67 },
+        { date: "2003-03-15", approval: 71 },
+        { date: "2003-07-15", approval: 60 },
+        { date: "2004-05-15", approval: 49 },
+        { date: "2004-11-15", approval: 53 },
+        { date: "2005-09-15", approval: 42 },
+        { date: "2006-05-15", approval: 34 },
+        { date: "2007-04-15", approval: 35 },
+        { date: "2008-09-15", approval: 30 },
+        { date: "2008-12-15", approval: 29 }
+      ],
+      headlines: [
+        {
+          text: "Terrorists attack the World Trade Center and Pentagon",
+          date: "2001-09-11",
+          note: "Approval rockets to ~90% — the classic rally-round-the-flag spike."
+        },
+        {
+          text: "U.S.-led forces invade Iraq",
+          date: "2003-03-20",
+          note: "A smaller second spike, then the long decline begins."
+        },
+        {
+          text: "Hurricane Katrina overwhelms New Orleans; federal response widely criticized",
+          date: "2005-08-29",
+          note: "Approval sags into the low 40s."
+        },
+        {
+          text: "Bush narrowly wins re-election against John Kerry",
+          date: "2004-11-02",
+          note: "A modest bump on the long slide down."
+        },
+        {
+          text: "Financial crisis: Lehman Brothers collapses",
+          date: "2008-09-15",
+          note: "Approval near its term low."
+        }
+      ]
+    },
+    {
+      id: "nixon-1969-1974",
+      leader: "Richard Nixon",
+      context: "United States · 1969–1974",
+      difficulty: "classic",
+      series: [
+        { date: "1969-01-20", approval: 59 },
+        { date: "1969-07-20", approval: 63 },
+        { date: "1969-11-15", approval: 67 },
+        { date: "1970-05-15", approval: 57 },
+        { date: "1970-12-15", approval: 52 },
+        { date: "1971-06-15", approval: 48 },
+        { date: "1972-01-15", approval: 49 },
+        { date: "1972-06-15", approval: 59 },
+        { date: "1972-11-15", approval: 62 },
+        { date: "1973-01-28", approval: 67 },
+        { date: "1973-04-15", approval: 48 },
+        { date: "1973-08-15", approval: 36 },
+        { date: "1973-10-28", approval: 27 },
+        { date: "1974-01-15", approval: 26 },
+        { date: "1974-04-15", approval: 25 },
+        { date: "1974-08-05", approval: 24 }
+      ],
+      headlines: [
+        {
+          text: "Apollo 11: Americans walk on the Moon",
+          date: "1969-07-20",
+          note: "A feel-good lift inside the early plateau."
+        },
+        {
+          text: "Paris accords end America's war in Vietnam",
+          date: "1973-01-27",
+          note: "The last peak — ~67% — before everything unravels."
+        },
+        {
+          text: "Senate opens televised Watergate hearings",
+          date: "1973-05-17",
+          note: "The cliff begins: roughly 20 points gone in six months."
+        },
+        {
+          text: "President fires special prosecutor; attorney general resigns in protest",
+          date: "1973-10-20",
+          note: "The 'Saturday Night Massacre' — near the bottom of the cliff."
+        },
+        {
+          text: "Nixon resigns",
+          date: "1974-08-08",
+          note: "He leaves office at ~24%, the end of a long flat bottom."
+        }
+      ]
+    },
+    {
+      id: "thatcher-1979-1990",
+      leader: "Margaret Thatcher",
+      context: "United Kingdom · 1979–1990",
+      difficulty: "classic",
+      series: [
+        { date: "1979-05-15", approval: 41 },
+        { date: "1980-02-15", approval: 38 },
+        { date: "1980-10-15", approval: 31 },
+        { date: "1981-06-15", approval: 27 },
+        { date: "1981-12-15", approval: 25 },
+        { date: "1982-03-15", approval: 30 },
+        { date: "1982-06-20", approval: 52 },
+        { date: "1983-01-15", approval: 46 },
+        { date: "1983-06-15", approval: 50 },
+        { date: "1984-06-15", approval: 39 },
+        { date: "1985-06-15", approval: 36 },
+        { date: "1986-01-25", approval: 28 },
+        { date: "1987-06-15", approval: 45 },
+        { date: "1988-06-15", approval: 40 },
+        { date: "1989-06-15", approval: 33 },
+        { date: "1990-03-31", approval: 21 },
+        { date: "1990-11-22", approval: 24 }
+      ],
+      headlines: [
+        {
+          text: "Unemployment passes three million for the first time since the 1930s",
+          date: "1982-01-26",
+          note: "She is at her trough — the least popular PM since polling began."
+        },
+        {
+          text: "Argentina invades the Falkland Islands",
+          date: "1982-04-02",
+          note: "The trigger: watch what happens next."
+        },
+        {
+          text: "British forces retake Port Stanley; Argentina surrenders",
+          date: "1982-06-14",
+          note: "The Falklands rally — from ~25% to over 50% in three months."
+        },
+        {
+          text: "Riots erupt in central London over the new poll tax",
+          date: "1990-03-31",
+          note: "Record-low satisfaction — the beginning of the end."
+        },
+        {
+          text: "Thatcher resigns after cabinet revolt",
+          date: "1990-11-22",
+          note: "Out within months of the poll-tax trough."
+        }
+      ]
+    },
+    {
+      id: "blair-1997-2007",
+      leader: "Tony Blair",
+      context: "United Kingdom · 1997–2007",
+      difficulty: "moderate",
+      series: [
+        { date: "1997-05-02", approval: 65 },
+        { date: "1997-09-15", approval: 75 },
+        { date: "1998-05-15", approval: 62 },
+        { date: "1999-04-15", approval: 56 },
+        { date: "2000-05-15", approval: 45 },
+        { date: "2000-09-20", approval: 33 },
+        { date: "2001-02-15", approval: 49 },
+        { date: "2001-06-15", approval: 54 },
+        { date: "2001-10-15", approval: 61 },
+        { date: "2002-06-15", approval: 48 },
+        { date: "2003-02-15", approval: 38 },
+        { date: "2003-04-15", approval: 47 },
+        { date: "2003-12-15", approval: 38 },
+        { date: "2004-09-15", approval: 32 },
+        { date: "2005-05-15", approval: 36 },
+        { date: "2005-07-20", approval: 41 },
+        { date: "2006-05-15", approval: 26 },
+        { date: "2007-05-15", approval: 28 }
+      ],
+      headlines: [
+        {
+          text: "Labour landslide ends 18 years of Conservative government",
+          date: "1997-05-02",
+          note: "The honeymoon starts high and goes higher."
+        },
+        {
+          text: "Diana, Princess of Wales, dies in Paris car crash",
+          date: "1997-08-31",
+          note: "'The people's princess' — his satisfaction peaks around 75%."
+        },
+        {
+          text: "Fuel blockades leave petrol stations dry across Britain",
+          date: "2000-09-11",
+          note: "A sharp, short dip — the first real crisis."
+        },
+        {
+          text: "British troops join U.S.-led invasion of Iraq",
+          date: "2003-03-20",
+          note: "A small wartime rally, then a decline he never reverses."
+        },
+        {
+          text: "Suicide bombers kill 52 on London transport",
+          date: "2005-07-07",
+          note: "A brief uptick of unity on an already-low plateau."
+        }
+      ]
+    },
+    {
+      id: "johnson-2019-2022",
+      leader: "Boris Johnson",
+      context: "United Kingdom · 2019–2022",
+      difficulty: "moderate",
+      series: [
+        { date: "2019-07-24", approval: 35 },
+        { date: "2019-10-15", approval: 38 },
+        { date: "2019-12-13", approval: 44 },
+        { date: "2020-02-15", approval: 40 },
+        { date: "2020-04-10", approval: 66 },
+        { date: "2020-05-30", approval: 45 },
+        { date: "2020-07-15", approval: 40 },
+        { date: "2020-10-15", approval: 34 },
+        { date: "2021-01-15", approval: 32 },
+        { date: "2021-04-15", approval: 44 },
+        { date: "2021-07-15", approval: 36 },
+        { date: "2021-11-15", approval: 30 },
+        { date: "2021-12-15", approval: 24 },
+        { date: "2022-01-15", approval: 22 },
+        { date: "2022-04-15", approval: 26 },
+        { date: "2022-07-07", approval: 21 }
+      ],
+      headlines: [
+        {
+          text: "Johnson wins biggest Conservative majority since Thatcher",
+          date: "2019-12-12",
+          note: "An election bump, but the real spike is still to come."
+        },
+        {
+          text: "Britain locks down as coronavirus spreads",
+          date: "2020-03-23",
+          note: "Rally-round-the-flag: approval jumps over 20 points."
+        },
+        {
+          text: "PM's top adviser drove 260 miles in lockdown, says he has 'no regrets'",
+          date: "2020-05-25",
+          note: "The Cummings affair — the rally deflates and never returns."
+        },
+        {
+          text: "No 10 staff joked about parties while Britain locked down, leaked video shows",
+          date: "2021-12-07",
+          note: "Partygate: the second cliff, down to the low 20s."
+        },
+        {
+          text: "Johnson resigns after ministers quit en masse",
+          date: "2022-07-07",
+          note: "He leaves at his term low."
+        }
+      ]
+    },
+    {
+      id: "truss-2022",
+      leader: "Liz Truss",
+      context: "United Kingdom · Sep–Oct 2022 · 49 days",
+      difficulty: "expert",
+      series: [
+        { date: "2022-09-06", approval: 31 },
+        { date: "2022-09-14", approval: 33 },
+        { date: "2022-09-23", approval: 28 },
+        { date: "2022-09-29", approval: 18 },
+        { date: "2022-10-05", approval: 16 },
+        { date: "2022-10-12", approval: 14 },
+        { date: "2022-10-17", approval: 10 },
+        { date: "2022-10-20", approval: 9 },
+        { date: "2022-10-24", approval: 8 }
+      ],
+      headlines: [
+        {
+          text: "New chancellor unveils biggest tax cuts in half a century",
+          date: "2022-09-23",
+          note: "The mini-budget. The markets are about to vote."
+        },
+        {
+          text: "Pound hits record low against the dollar",
+          date: "2022-09-26",
+          note: "The cliff steepens."
+        },
+        {
+          text: "Bank of England launches emergency bond-buying to halt pensions meltdown",
+          date: "2022-09-28",
+          note: "Central-bank rescue mid-freefall."
+        },
+        {
+          text: "Truss sacks chancellor and scraps her own tax plan",
+          date: "2022-10-14",
+          note: "The U-turn doesn't stop the slide."
+        },
+        {
+          text: "Truss resigns; a lettuce outlasts the prime minister",
+          date: "2022-10-20",
+          note: "49 days. The whole level is one cliff — that's the joke."
+        }
+      ]
+    },
+    {
+      id: "macron-2017-2022",
+      leader: "Emmanuel Macron",
+      context: "France · 2017–2022 (first term)",
+      difficulty: "moderate",
+      series: [
+        { date: "2017-05-07", approval: 62 },
+        { date: "2017-07-15", approval: 54 },
+        { date: "2017-09-15", approval: 44 },
+        { date: "2017-12-15", approval: 42 },
+        { date: "2018-04-15", approval: 40 },
+        { date: "2018-07-20", approval: 36 },
+        { date: "2018-09-15", approval: 29 },
+        { date: "2018-11-15", approval: 26 },
+        { date: "2018-12-10", approval: 23 },
+        { date: "2019-02-15", approval: 28 },
+        { date: "2019-06-15", approval: 32 },
+        { date: "2019-12-15", approval: 30 },
+        { date: "2020-03-25", approval: 43 },
+        { date: "2020-06-15", approval: 38 },
+        { date: "2020-11-15", approval: 41 },
+        { date: "2021-04-15", approval: 37 },
+        { date: "2021-12-15", approval: 40 },
+        { date: "2022-03-15", approval: 44 },
+        { date: "2022-04-24", approval: 41 }
+      ],
+      headlines: [
+        {
+          text: "Macron, 39, elected France's youngest-ever president",
+          date: "2017-05-07",
+          note: "Honeymoon high — followed by one of the fastest fades on record."
+        },
+        {
+          text: "Macron's bodyguard filmed assaulting May Day protesters",
+          date: "2018-07-18",
+          note: "The Benalla affair accelerates an already steady slide."
+        },
+        {
+          text: "'Gilets jaunes' set cars ablaze on the Champs-Élysées",
+          date: "2018-12-01",
+          note: "The yellow-vest trough — his first-term low, around 23%."
+        },
+        {
+          text: "France orders nationwide lockdown: 'We are at war'",
+          date: "2020-03-16",
+          note: "A COVID rally bump — smaller than Britain's, but visible."
+        },
+        {
+          text: "Russia invades Ukraine",
+          date: "2022-02-24",
+          note: "A late crisis bump, weeks before his re-election."
+        }
+      ]
+    },
+    {
+      id: "bolsonaro-2019-2022",
+      leader: "Jair Bolsonaro",
+      context: "Brazil · 2019–2022",
+      difficulty: "subtle",
+      series: [
+        { date: "2019-01-01", approval: 39 },
+        { date: "2019-04-15", approval: 32 },
+        { date: "2019-08-15", approval: 29 },
+        { date: "2019-12-15", approval: 30 },
+        { date: "2020-04-15", approval: 33 },
+        { date: "2020-06-15", approval: 32 },
+        { date: "2020-08-15", approval: 37 },
+        { date: "2020-12-15", approval: 37 },
+        { date: "2021-03-15", approval: 30 },
+        { date: "2021-05-15", approval: 24 },
+        { date: "2021-07-15", approval: 24 },
+        { date: "2021-09-15", approval: 22 },
+        { date: "2021-12-15", approval: 22 },
+        { date: "2022-03-15", approval: 25 },
+        { date: "2022-06-15", approval: 26 },
+        { date: "2022-09-15", approval: 33 },
+        { date: "2022-12-15", approval: 38 }
+      ],
+      headlines: [
+        {
+          text: "Far-right outsider sworn in promising to crush corruption",
+          date: "2019-01-01",
+          note: "The honeymoon high fades within months."
+        },
+        {
+          text: "Government begins emergency cash payments to 60 million Brazilians",
+          date: "2020-04-09",
+          note: "Counter-intuitive pandemic politics: the handout lifts him to his peak."
+        },
+        {
+          text: "Manaus hospitals run out of oxygen as a new variant surges",
+          date: "2021-01-14",
+          note: "The 2021 slide begins."
+        },
+        {
+          text: "Senate opens inquiry into the government's pandemic response",
+          date: "2021-04-27",
+          note: "Down to the low 20s — his term trough."
+        },
+        {
+          text: "Bolsonaro narrowly loses runoff to Lula",
+          date: "2022-10-30",
+          note: "He loses while his numbers are recovering — closer than polls predicted."
+        }
+      ]
+    }
+  ];
+
+  /* ====================== scoring ====================== */
+  var FULL_BAND = 0.03;   // within 3% of timeline width = full points
+  var ZERO_BAND = 0.25;   // beyond 25% = zero
+  var MAX_PER_PIN = 100;
+
+  function scoreFromDistance(d) {
+    if (d <= FULL_BAND) return MAX_PER_PIN;
+    if (d >= ZERO_BAND) return 0;
+    return Math.round(MAX_PER_PIN * (1 - (d - FULL_BAND) / (ZERO_BAND - FULL_BAND)));
+  }
+  function bandFromDistance(d) {
+    if (d <= 0.05) return "g";
+    if (d <= 0.12) return "y";
+    return "b";
+  }
+  var BAND_EMOJI = { g: "🟩", y: "🟨", b: "⬛" };
+
+  /* ====================== utilities ====================== */
+  function ts(iso) { return new Date(iso + "T12:00:00Z").getTime(); }
+  function shuffled(arr) {
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+  function clamp(v, lo, hi) { return Math.min(hi, Math.max(lo, v)); }
+  function el(tag, attrs, parent) {
+    var ns = "http://www.w3.org/2000/svg";
+    var htmlTags = { div: 1, p: 1, button: 1, h2: 1, span: 1 };
+    var node = htmlTags[tag]
+      ? document.createElement(tag)
+      : document.createElementNS(ns, tag);
+    if (attrs) for (var k in attrs) {
+      if (k === "text") node.textContent = attrs[k];
+      else node.setAttribute(k, attrs[k]);
+    }
+    if (parent) parent.appendChild(node);
+    return node;
+  }
+
+  /* ====================== app ====================== */
+  function PinTheHeadline(root, levels) {
+    var session = { rounds: 0, bestTotal: 0, totalScore: 0, totalPins: 0, greens: 0 };
+
+    root.classList.add("pth");
+
+    /* ---------------- level-select menu ---------------- */
+    function showMenu() {
+      root.innerHTML = "";
+      var header = el("div", { "class": "pth-header" }, root);
+      var titleEl = el("p", { "class": "pth-title" }, header);
+      titleEl.innerHTML = '<span class="pth-pin-emoji" aria-hidden="true">📍</span>Pin the Headline';
+      if (session.rounds > 0) {
+        el("span", {
+          "class": "pth-context",
+          text: session.rounds + " round" + (session.rounds === 1 ? "" : "s") + " · best " + session.bestTotal
+        }, header);
+      }
+      el("p", {
+        "class": "pth-menu-intro",
+        text: "You'll see a leader's approval curve with the dates stripped, and a real headline from their time in office. Pin the headline where you think it happened — read the curve's shape, not your memory. Pick a leader:"
+      }, root);
+
+      var grid = el("div", { "class": "pth-menu-grid", role: "list" }, root);
+      levels.forEach(function (lv) {
+        var btn = el("button", { "class": "pth-level-btn", type: "button", role: "listitem" }, grid);
+        el("p", { "class": "pth-level-leader", text: lv.leader }, btn);
+        el("p", { "class": "pth-level-context", text: lv.context + " · " + lv.headlines.length + " headlines" }, btn);
+        var diff = lv.difficulty || "moderate";
+        el("span", { "class": "pth-level-tag pth-tag-" + diff, text: diff }, btn);
+        btn.addEventListener("click", function () { buildGame(lv); });
+      });
+    }
+
+    /* ---------------- one leader's game ---------------- */
+    function buildGame(level) {
+      // --- chart geometry (SVG user units; scales responsively via viewBox) ---
+      var W = 800, H = 360;
+      var PAD = { l: 44, r: 18, t: 20, b: 34 };
+      var plotW = W - PAD.l - PAD.r;
+      var plotH = H - PAD.t - PAD.b;
+
+      var times = level.series.map(function (p) { return ts(p.date); });
+      var t0 = times[0], t1 = times[times.length - 1];
+      var vals = level.series.map(function (p) { return p.approval; });
+      var yLo = Math.max(0, Math.floor((Math.min.apply(null, vals) - 6) / 10) * 10);
+      var yHi = Math.min(100, Math.ceil((Math.max.apply(null, vals) + 6) / 10) * 10);
+
+      function xOf(t) { return PAD.l + ((t - t0) / (t1 - t0)) * plotW; }
+      function yOf(v) { return PAD.t + (1 - (v - yLo) / (yHi - yLo)) * plotH; }
+      function fracToX(f) { return PAD.l + f * plotW; }
+      function xToFrac(x) { return clamp((x - PAD.l) / plotW, 0, 1); }
+
+      // approval interpolated at an arbitrary timeline fraction (for the pin readout)
+      function approvalAtFrac(f) {
+        var t = t0 + f * (t1 - t0);
+        for (var i = 1; i < times.length; i++) {
+          if (t <= times[i]) {
+            var a = (t - times[i - 1]) / (times[i] - times[i - 1]);
+            return vals[i - 1] + a * (vals[i] - vals[i - 1]);
+          }
+        }
+        return vals[vals.length - 1];
+      }
+
+      // --- state ---
+      var round = [];          // shuffled headlines for this round
+      var idx = 0;             // current headline index
+      var pinFrac = null;      // player's pin, 0..1 along timeline
+      var phase = "place";     // "place" | "revealed" | "done"
+      var results = [];        // { score, band, distance }
+
+      /* ---------- DOM skeleton ---------- */
+      root.innerHTML = "";
+
+      var header = el("div", { "class": "pth-header" }, root);
+      var back = el("button", { "class": "pth-back", type: "button", text: "← all leaders" }, header);
+      back.addEventListener("click", showMenu);
+      el("span", { "class": "pth-context", text: level.leader + " · " + level.context }, header);
+
+      var headlineCard = el("div", { "class": "pth-headline-card" }, root);
+      el("div", { "class": "pth-kicker", text: "When did this happen? Read the curve, not your memory." }, headlineCard);
+      var headlineEl = el("p", { "class": "pth-headline", "aria-live": "polite" }, headlineCard);
+
+      var chartWrap = el("div", { "class": "pth-chart-wrap" }, root);
+      var svg = el("svg", {
+        "class": "pth-svg",
+        viewBox: "0 0 " + W + " " + H,
+        role: "slider",
+        tabindex: "0",
+        "aria-valuemin": "0",
+        "aria-valuemax": "100",
+        "aria-label": "Timeline of " + level.leader + "'s approval rating, dates hidden. Use left and right arrow keys to place your pin along the timeline, then press Enter to submit. Tap or click the chart to place the pin directly.",
+        "aria-orientation": "horizontal"
+      }, chartWrap);
+      var hintEl = el("div", { "class": "pth-hint" }, chartWrap);
+
+      var live = el("div", { "class": "pth-sr", "aria-live": "polite", role: "status" }, root);
+
+      var controls = el("div", { "class": "pth-controls" }, root);
+      var progress = el("div", { "class": "pth-progress", "aria-label": "Round progress" }, controls);
+      var submitBtn = el("button", { "class": "pth-btn", type: "button", text: "Pin it 📍" }, controls);
+
+      var feedback = el("div", { "class": "pth-feedback" }, root);
+
+      /* ---------- SVG layers ---------- */
+      var defs = el("defs", null, svg);
+      var grad = el("linearGradient", { id: "pth-area-grad", x1: "0", y1: "0", x2: "0", y2: "1" }, defs);
+      el("stop", { offset: "0%", "stop-color": "rgba(110,168,254,0.28)" }, grad);
+      el("stop", { offset: "100%", "stop-color": "rgba(110,168,254,0.02)" }, grad);
+
+      var gGrid = el("g", null, svg);
+      var gCurve = el("g", null, svg);
+      var gAftermath = el("g", null, svg);
+      var gAnno = el("g", null, svg);
+      var gPin = el("g", null, svg);
+
+      // grid + y labels (approval % stays labeled; dates do NOT)
+      for (var gv = yLo; gv <= yHi; gv += 10) {
+        if (gv % 20 !== 0 && gv !== yLo && gv !== yHi) continue;
+        var gy = yOf(gv);
+        el("line", { x1: PAD.l, x2: W - PAD.r, y1: gy, y2: gy, stroke: "var(--pth-grid)", "stroke-width": 1 }, gGrid);
+        el("text", { x: PAD.l - 8, y: gy + 4, "text-anchor": "end", "font-size": 12, fill: "var(--pth-ink-dim)", text: gv + "%" }, gGrid);
+      }
+      // unlabeled time axis with a direction hint only
+      el("line", { x1: PAD.l, x2: W - PAD.r, y1: H - PAD.b, y2: H - PAD.b, stroke: "rgba(255,255,255,0.18)", "stroke-width": 1.5 }, gGrid);
+      el("text", { x: W - PAD.r, y: H - PAD.b + 20, "text-anchor": "end", "font-size": 12, fill: "var(--pth-ink-dim)", text: "time → (dates hidden)" }, gGrid);
+
+      // curve + area
+      var lineD = "";
+      level.series.forEach(function (p, i) {
+        var x = xOf(times[i]).toFixed(1), y = yOf(p.approval).toFixed(1);
+        lineD += (i === 0 ? "M" : "L") + x + " " + y + " ";
+      });
+      var areaD = lineD + "L" + xOf(t1).toFixed(1) + " " + (H - PAD.b) + " L" + xOf(t0).toFixed(1) + " " + (H - PAD.b) + " Z";
+      el("path", { d: areaD, fill: "url(#pth-area-grad)" }, gCurve);
+      el("path", { d: lineD, fill: "none", stroke: "var(--pth-line)", "stroke-width": 2.5, "stroke-linejoin": "round", "stroke-linecap": "round" }, gCurve);
+
+      // player pin (vertical line + handle on curve + axis triangle + readout)
+      var pinLine = el("line", { y1: PAD.t, y2: H - PAD.b, stroke: "var(--pth-pin)", "stroke-width": 2, "stroke-dasharray": "5 4", visibility: "hidden" }, gPin);
+      var pinDot = el("circle", { r: 7, fill: "var(--pth-pin)", stroke: "#1c1500", "stroke-width": 2, visibility: "hidden" }, gPin);
+      var pinTri = el("path", { fill: "var(--pth-pin)", visibility: "hidden" }, gPin);
+      var pinLabel = el("text", { "font-size": 13, "font-weight": "700", fill: "var(--pth-pin)", "text-anchor": "middle", visibility: "hidden" }, gPin);
+
+      function drawPin(f) {
+        var x = fracToX(f), av = approvalAtFrac(f), y = yOf(av);
+        pinLine.setAttribute("x1", x); pinLine.setAttribute("x2", x);
+        pinDot.setAttribute("cx", x); pinDot.setAttribute("cy", y);
+        pinTri.setAttribute("d", "M" + (x - 7) + " " + (H - PAD.b + 12) + " L" + (x + 7) + " " + (H - PAD.b + 12) + " L" + x + " " + (H - PAD.b + 2) + " Z");
+        pinLabel.setAttribute("x", clamp(x, PAD.l + 24, W - PAD.r - 24));
+        pinLabel.setAttribute("y", clamp(y - 14, PAD.t + 12, H - PAD.b));
+        pinLabel.textContent = Math.round(av) + "%";
+        [pinLine, pinDot, pinTri, pinLabel].forEach(function (n) { n.setAttribute("visibility", "visible"); });
+      }
+      function hidePin() {
+        [pinLine, pinDot, pinTri, pinLabel].forEach(function (n) { n.setAttribute("visibility", "hidden"); });
+      }
+
+      /* ---------- input: pointer ---------- */
+      var dragging = false;
+      function pointerFrac(evt) {
+        // convert client coords -> SVG user units via inverse CTM
+        var pt = svg.createSVGPoint();
+        pt.x = evt.clientX; pt.y = evt.clientY;
+        var sp = pt.matrixTransform(svg.getScreenCTM().inverse());
+        return xToFrac(sp.x);
+      }
+      function setPin(f, announce) {
+        pinFrac = clamp(f, 0, 1);
+        drawPin(pinFrac);
+        svg.setAttribute("aria-valuenow", Math.round(pinFrac * 100));
+        svg.setAttribute("aria-valuetext", Math.round(pinFrac * 100) + "% along the timeline, approval here is about " + Math.round(approvalAtFrac(pinFrac)) + "%");
+        submitBtn.disabled = false;
+        if (announce) live.textContent = "Pin at " + Math.round(pinFrac * 100) + "% of the timeline.";
+      }
+      svg.addEventListener("pointerdown", function (e) {
+        if (phase !== "place") return;
+        dragging = true;
+        try { svg.setPointerCapture(e.pointerId); } catch (err) { /* capture is best-effort */ }
+        setPin(pointerFrac(e), false);
+        e.preventDefault();
+      });
+      svg.addEventListener("pointermove", function (e) {
+        if (!dragging || phase !== "place") return;
+        setPin(pointerFrac(e), false);
+      });
+      svg.addEventListener("pointerup", function () { dragging = false; });
+      svg.addEventListener("pointercancel", function () { dragging = false; });
+
+      /* ---------- input: keyboard ---------- */
+      svg.addEventListener("keydown", function (e) {
+        if (phase !== "place") {
+          if (e.key === "Enter" || e.key === " ") { e.preventDefault(); submitBtn.click(); }
+          return;
+        }
+        var step = e.shiftKey ? 0.05 : 0.01;
+        var f = pinFrac === null ? 0.5 : pinFrac;
+        switch (e.key) {
+          case "ArrowLeft": case "ArrowDown": setPin(f - step, true); e.preventDefault(); break;
+          case "ArrowRight": case "ArrowUp": setPin(f + step, true); e.preventDefault(); break;
+          case "Home": setPin(0, true); e.preventDefault(); break;
+          case "End": setPin(1, true); e.preventDefault(); break;
+          case "Enter": case " ":
+            if (pinFrac === null) setPin(0.5, true);
+            else submit();
+            e.preventDefault();
+            break;
+        }
+      });
+
+      /* ---------- reveal ---------- */
+      function clearReveal() {
+        gAftermath.innerHTML = "";
+        gAnno.innerHTML = "";
+      }
+
+      function drawAftermath(trueT) {
+        // highlight what approval did in the ~4 months after the event
+        // (on very short timelines, use a fifth of the total span instead)
+        var span = Math.min(120 * 86400000, (t1 - t0) / 5);
+        var endT = Math.min(trueT + span, t1);
+        var pts = [[trueT, approvalAtFrac((trueT - t0) / (t1 - t0))]];
+        for (var i = 0; i < times.length; i++) {
+          if (times[i] > trueT && times[i] < endT) pts.push([times[i], vals[i]]);
+        }
+        pts.push([endT, approvalAtFrac((endT - t0) / (t1 - t0))]);
+        var d = pts.map(function (p, i) {
+          return (i === 0 ? "M" : "L") + xOf(p[0]).toFixed(1) + " " + yOf(p[1]).toFixed(1);
+        }).join(" ");
+        var path = el("path", { d: d, fill: "none", stroke: "var(--pth-true)", "stroke-width": 4.5, "stroke-linecap": "round", opacity: 0 }, gAftermath);
+        // draw-in animation
+        try {
+          var len = path.getTotalLength();
+          path.setAttribute("stroke-dasharray", len);
+          path.setAttribute("stroke-dashoffset", len);
+          path.setAttribute("opacity", 0.9);
+          path.getBoundingClientRect(); // flush
+          path.style.transition = "stroke-dashoffset 0.8s ease 0.55s";
+          path.style.strokeDashoffset = "0";
+        } catch (err) { path.setAttribute("opacity", 0.9); }
+      }
+
+      function drawTrueMarker(trueFrac, animateFromFrac, done) {
+        var tx = fracToX(trueFrac);
+        var trueLine = el("line", { x1: tx, x2: tx, y1: PAD.t, y2: H - PAD.b, stroke: "var(--pth-true)", "stroke-width": 2, opacity: 0 }, gAnno);
+        var labX = clamp(tx, PAD.l + 70, W - PAD.r - 70);
+        var lab = el("text", {
+          x: labX, y: PAD.t + 14, "text-anchor": "middle", "font-size": 13, "font-weight": "800",
+          fill: "var(--pth-true)", opacity: 0, text: "← it happened here"
+        }, gAnno);
+        if (tx > labX) lab.textContent = "it happened here →";
+        else if (Math.abs(tx - labX) < 30) lab.textContent = "↓ it happened here";
+
+        // ghost of the guess stays put; an accent dot flies from guess to truth
+        var gx = fracToX(animateFromFrac);
+        var flyer = el("circle", { cx: gx, cy: H - PAD.b - 8, r: 7, fill: "var(--pth-true)", stroke: "#06270f", "stroke-width": 2 }, gAnno);
+        var start = null, DUR = 600;
+        var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        function frame(now) {
+          if (!start) start = now;
+          var p = clamp((now - start) / DUR, 0, 1);
+          var ease = 1 - Math.pow(1 - p, 3);
+          flyer.setAttribute("cx", gx + (tx - gx) * ease);
+          if (p < 1) requestAnimationFrame(frame);
+          else {
+            trueLine.style.transition = "opacity 0.25s"; trueLine.setAttribute("opacity", 0.95);
+            lab.style.transition = "opacity 0.25s"; lab.setAttribute("opacity", 1);
+            if (done) done();
+          }
+        }
+        if (reduced) {
+          flyer.setAttribute("cx", tx);
+          trueLine.setAttribute("opacity", 0.95);
+          lab.setAttribute("opacity", 1);
+          if (done) done();
+        } else requestAnimationFrame(frame);
+      }
+
+      function submit() {
+        if (phase !== "place" || pinFrac === null) return;
+        phase = "revealed";
+        svg.classList.add("pth-locked");
+
+        var h = round[idx];
+        var trueFrac = clamp((ts(h.date) - t0) / (t1 - t0), 0, 1);
+        var d = Math.abs(pinFrac - trueFrac);
+        var score = scoreFromDistance(d);
+        var band = bandFromDistance(d);
+        results.push({ score: score, band: band, distance: d });
+
+        // gray out the guess pin into a "ghost"
+        pinLine.setAttribute("stroke", "var(--pth-ghost)");
+        pinDot.setAttribute("fill", "var(--pth-ghost)");
+        pinTri.setAttribute("fill", "var(--pth-ghost)");
+        pinLabel.setAttribute("visibility", "hidden");
+
+        drawTrueMarker(trueFrac, pinFrac, function () { drawAftermath(ts(h.date)); });
+
+        var pct = Math.round(d * 100);
+        var verdict = band === "g" ? "Bullseye!" : band === "y" ? "Close!" : "Way off.";
+        feedback.innerHTML = "";
+        var sl = el("p", { "class": "pth-score-line" }, feedback);
+        sl.textContent = BAND_EMOJI[band] + " " + verdict + " " + score + "/" + MAX_PER_PIN + " — you were " + pct + "% of the timeline away.";
+        var noteP = el("p", { "class": "pth-note" }, feedback);
+        noteP.innerHTML = "<strong>" + h.date + ":</strong> " + (h.note || "This is where it happened.");
+        feedback.classList.add("pth-show");
+        live.textContent = verdict + " Scored " + score + " out of " + MAX_PER_PIN + ". " + (h.note || "");
+
+        hintEl.textContent = "The green line is where it really happened — and what approval did next.";
+        submitBtn.textContent = idx + 1 < round.length ? "Next headline →" : "See results →";
+        submitBtn.disabled = false;
+        renderProgress();
+      }
+
+      /* ---------- round flow ---------- */
+      function renderProgress() {
+        progress.innerHTML = "";
+        for (var i = 0; i < round.length; i++) {
+          var cls = "pth-dot";
+          if (i < results.length) cls += " pth-dot-" + results[i].band;
+          else if (i === idx && phase === "place") cls += " pth-dot-current";
+          el("div", { "class": cls }, progress);
+        }
+      }
+
+      function showHeadline() {
+        phase = "place";
+        pinFrac = null;
+        hidePin();
+        clearReveal();
+        svg.classList.remove("pth-locked");
+        svg.removeAttribute("aria-valuenow");
+        pinLine.setAttribute("stroke", "var(--pth-pin)");
+        pinDot.setAttribute("fill", "var(--pth-pin)");
+        pinTri.setAttribute("fill", "var(--pth-pin)");
+        feedback.classList.remove("pth-show");
+        headlineEl.textContent = "“" + round[idx].text + "”";
+        hintEl.textContent = "Tap or click the timeline where you think this happened · headline " + (idx + 1) + " of " + round.length;
+        submitBtn.textContent = "Pin it 📍";
+        submitBtn.disabled = true;
+        renderProgress();
+        live.textContent = "Headline " + (idx + 1) + " of " + round.length + ": " + round[idx].text;
+      }
+
+      function totalScore() {
+        return results.reduce(function (s, r) { return s + r.score; }, 0);
+      }
+
+      function shareText() {
+        var emoji = results.map(function (r) { return BAND_EMOJI[r.band]; }).join("");
+        return "📍 Pin the Headline — " + level.leader + "\n" +
+          emoji + " " + totalScore() + "/" + round.length * MAX_PER_PIN + "\n" +
+          "Can you read the curve? " + SITE_URL;
+      }
+
+      function showEnd() {
+        phase = "done";
+        var total = totalScore();
+        session.rounds += 1;
+        session.totalScore += total;
+        session.totalPins += results.length;
+        session.greens += results.filter(function (r) { return r.band === "g"; }).length;
+        if (total > session.bestTotal) session.bestTotal = total;
+
+        var stars = Math.round((total / (round.length * MAX_PER_PIN)) * 5);
+        var starStr = "★".repeat(stars) + "☆".repeat(5 - stars);
+
+        feedback.classList.remove("pth-show");
+        hintEl.textContent = "";
+        headlineEl.textContent = "Round complete!";
+
+        feedback.innerHTML = "";
+        var end = el("div", { "class": "pth-end" }, feedback);
+        el("h2", { text: level.leader + " — round complete" }, end);
+        el("div", { "class": "pth-end-emoji", text: results.map(function (r) { return BAND_EMOJI[r.band]; }).join("") }, end);
+        el("div", { "class": "pth-end-total", text: total + " / " + round.length * MAX_PER_PIN }, end);
+        el("div", { "class": "pth-end-stars", "aria-label": stars + " out of 5 stars", text: starStr }, end);
+        el("p", {
+          "class": "pth-session",
+          text: "Session: " + session.rounds + " round" + (session.rounds === 1 ? "" : "s") +
+            " · best " + session.bestTotal +
+            " · " + session.greens + "/" + session.totalPins + " bullseyes"
+        }, end);
+
+        var actions = el("div", { "class": "pth-end-actions" }, end);
+        var copyBtn = el("button", { "class": "pth-btn", type: "button", text: "Copy result 📋" }, actions);
+        var againBtn = el("button", { "class": "pth-btn pth-btn-ghost", type: "button", text: "Play again" }, actions);
+        var menuBtn = el("button", { "class": "pth-btn pth-btn-ghost", type: "button", text: "All leaders" }, actions);
+        var copied = el("div", { "class": "pth-copied", "aria-live": "polite" }, end);
+
+        copyBtn.addEventListener("click", function () {
+          var txt = shareText();
+          function ok() { copied.textContent = "Copied to clipboard!"; }
+          function fallback() {
+            var ta = document.createElement("textarea");
+            ta.value = txt; ta.style.position = "fixed"; ta.style.opacity = "0";
+            document.body.appendChild(ta); ta.select();
+            try { document.execCommand("copy"); ok(); } catch (e) { copied.textContent = txt; }
+            document.body.removeChild(ta);
+          }
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(txt).then(ok, fallback);
+          } else fallback();
+        });
+        againBtn.addEventListener("click", startRound);
+        menuBtn.addEventListener("click", showMenu);
+
+        feedback.classList.add("pth-show");
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Pin it 📍";
+        live.textContent = "Round complete. Total score " + total + " out of " + round.length * MAX_PER_PIN + ".";
+      }
+
+      function startRound() {
+        round = shuffled(level.headlines);
+        idx = 0;
+        results = [];
+        showHeadline();
+      }
+
+      submitBtn.addEventListener("click", function () {
+        if (phase === "place") submit();
+        else if (phase === "revealed") {
+          idx += 1;
+          if (idx < round.length) showHeadline();
+          else showEnd();
+        }
+      });
+
+      startRound();
+    }
+
+    showMenu();
+  }
+
+  /* ---- mount: auto-attach to #pin-the-headline, or call window.PinTheHeadline.mount(el, data) ---- */
+  window.PinTheHeadline = {
+    mount: function (target, data) { PinTheHeadline(target, data || DATA); }
+  };
+  var auto = document.getElementById("pin-the-headline");
+  if (auto) PinTheHeadline(auto, DATA);
+})();
+</script>
+</body>
+</html>
