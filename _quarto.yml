@@ -24,6 +24,8 @@ website:
     right:
       - icon: github
         href: https://github.com/JonaKelloggDCB
+      - icon: linkedin
+        href: https://www.linkedin.com/in/jonathan-kellogg-de-cock-buning-73a220220/
       - icon: envelope
         href: mailto:jonathan.kellogg@politics.ox.ac.uk
 
