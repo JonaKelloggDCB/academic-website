@@ -1,0 +1,5 @@
+/* Extra CSS that doesn't need SCSS variables */
+.contact-line {
+  margin-top: 0.5rem;
+  color: #555;
+}

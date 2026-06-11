@@ -1,0 +1,107 @@
+[
+  {
+    "objectID": "cv.html",
+    "href": "cv.html",
+    "title": "CV",
+    "section": "",
+    "text": "Download CV (PDF)\nA full curriculum vitae is available as a PDF at the link above. Below is a condensed overview."
+  },
+  {
+    "objectID": "cv.html#education",
+    "href": "cv.html#education",
+    "title": "CV",
+    "section": "Education",
+    "text": "Education\nDPhil in Politics, University of Oxford (Balliol College), 2026–2029 (expected)\nSupervisors: Prof. Ben Ansell and Prof. David Rueda\nMPhil in Politics (European Politics and Society), University of Oxford (Wolfson College), 2024–2026\nSupervisor: Prof. David Rueda. Year 1: Distinction.\nThesis: Frankenstein’s Bills: The Political Utility of Disjointed Legislation.\nMSc in Economics (Behavioural Economics and Game Theory), University of Amsterdam, 2023–2024\nGPA 7.8/10. Thesis: Make and Break? Four Strategic Voting Games of “Kingmaker” Parties (supervisor: Prof. Arthur Schram).\nExchange Semester, Data Science and Economics, Grinnell College, Spring 2022.\nBSc Liberal Arts and Sciences (Governance, Economics and Development), Leiden University College The Hague, 2020–2023\nGPA 3.75/4.0, cum laude."
+  },
+  {
+    "objectID": "cv.html#public-engagement",
+    "href": "cv.html#public-engagement",
+    "title": "CV",
+    "section": "Public Engagement",
+    "text": "Public Engagement\nRoom for Discussion, Committee Member & Interviewer, 2023–2024\nOn-stage interviewer at the University of Amsterdam’s flagship student interview platform. Full interview portfolio at the link above."
+  },
+  {
+    "objectID": "cv.html#awards",
+    "href": "cv.html#awards",
+    "title": "CV",
+    "section": "Awards",
+    "text": "Awards\n\nAI Governance Fellowship, The Hague Effective Altruism / Leiden University College, 2023.\nWorld Champion (EFL category), World Universities Debating Championship, 2019."
+  },
+  {
+    "objectID": "cv.html#technical-skills",
+    "href": "cv.html#technical-skills",
+    "title": "CV",
+    "section": "Technical skills",
+    "text": "Technical skills\nR · Stata · Python · LaTeX · Git · GIS · survey design · LLM-assisted text analysis"
+  },
+  {
+    "objectID": "cv.html#languages",
+    "href": "cv.html#languages",
+    "title": "CV",
+    "section": "Languages",
+    "text": "Languages\nEnglish (native/fluent) · Dutch (native)"
+  },
+  {
+    "objectID": "cv.html#contact",
+    "href": "cv.html#contact",
+    "title": "CV",
+    "section": "Contact",
+    "text": "Contact\njonathan.kellogg@politics.ox.ac.uk"
+  },
+  {
+    "objectID": "research.html",
+    "href": "research.html",
+    "title": "Research",
+    "section": "",
+    "text": "Comparative political economy of advanced democracies; coalition formation and legislative bargaining; redistribution and the political economy of taxation; experimental and computational methods (survey experiments, LLM-assisted text analysis)."
+  },
+  {
+    "objectID": "research.html#research-interests",
+    "href": "research.html#research-interests",
+    "title": "Research",
+    "section": "",
+    "text": "Comparative political economy of advanced democracies; coalition formation and legislative bargaining; redistribution and the political economy of taxation; experimental and computational methods (survey experiments, LLM-assisted text analysis)."
+  },
+  {
+    "objectID": "research.html#working-papers",
+    "href": "research.html#working-papers",
+    "title": "Research",
+    "section": "Working papers",
+    "text": "Working papers\n\nFrankenstein’s Bills: The Political Utility of Disjointed Legislation\nMPhil thesis, University of Oxford, Trinity 2026\nI treat disjointed legislation as a strategic tool: lawmakers bundle in secondary provisions the public is unlikely to notice. Using new measures of disjointedness for bills in France, the US, and the EU, I find that lobby spending predicts disjointedness, but only when an issue’s salience is low.\nPaper (PDF) · Code\n\n\nTax, What Is It Good For? Perceived Government Efficiency and Redistribution Preferences\nWorking paper, 2026\nVoters’ redistributive preferences may turn not just on fairness but on whether they think government spends competently. I use policy visibility as a proxy for perceived efficiency and exploit a regression-discontinuity around the UK Winter Fuel Payment: visible spending raises willingness to redistribute among British women, the gender asymmetry the theory predicts.\nPaper (PDF) · Code"
+  },
+  {
+    "objectID": "teaching.html",
+    "href": "teaching.html",
+    "title": "Teaching",
+    "section": "",
+    "text": "Tutor, Experimental Economics (Honours Bachelor) — Apr–Jul 2024"
+  },
+  {
+    "objectID": "teaching.html#university-of-amsterdam-amsterdam-school-of-economics",
+    "href": "teaching.html#university-of-amsterdam-amsterdam-school-of-economics",
+    "title": "Teaching",
+    "section": "",
+    "text": "Tutor, Experimental Economics (Honours Bachelor) — Apr–Jul 2024"
+  },
+  {
+    "objectID": "teaching.html#mathematical-institute-leiden-university",
+    "href": "teaching.html#mathematical-institute-leiden-university",
+    "title": "Teaching",
+    "section": "Mathematical Institute, Leiden University",
+    "text": "Mathematical Institute, Leiden University\nTeaching Assistant, Statistics — Aug–Nov 2023\nHeaded the Leiden University College Statistics Centre, which employed the Student Assistants."
+  },
+  {
+    "objectID": "teaching.html#leiden-university-college-the-hague",
+    "href": "teaching.html#leiden-university-college-the-hague",
+    "title": "Teaching",
+    "section": "Leiden University College The Hague",
+    "text": "Leiden University College The Hague\nStudent Assistant, Quantitative Research Methods — 2022"
+  },
+  {
+    "objectID": "index.html#about",
+    "href": "index.html#about",
+    "title": "Jonathan Tjaarda Kellogg",
+    "section": "About",
+    "text": "About\nI am a graduate student in Politics at the University of Oxford, transitioning to a DPhil at Balliol College under the supervision of Ben Ansell and David Rueda. My research focuses on comparative political economy, with a secondary interest in research methodology, particularly behavioural and experimental methods.\nI am interested in how political institutions shape economic outcomes. My current projects combine survey experiments and large-scale text analysis to study how voters and legislators behave under information frictions.\nBefore Oxford I read Economics (MSc, Behavioural Economics and Game Theory) at the University of Amsterdam and Liberal Arts and Sciences (BSc, Governance, Economics and Development) at Leiden University College The Hague."
+  }
+]

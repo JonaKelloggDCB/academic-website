@@ -1,0 +1,46 @@
+---
+title: "CV"
+---
+
+[Download CV (PDF)](Jonathan_Kellogg_CV.pdf){.btn .btn-primary}
+
+A full curriculum vitae is available as a PDF at the link above. Below is a condensed overview.
+
+## Education
+
+**DPhil in Politics**, University of Oxford (Balliol College), 2026–2029 *(expected)* \
+Supervisors: Prof. Ben Ansell and Prof. David Rueda
+
+**MPhil in Politics (European Politics and Society)**, University of Oxford (Wolfson College), 2024–2026 \
+Supervisor: Prof. David Rueda. Year 1: Distinction. \
+Thesis: *Frankenstein's Bills: The Political Utility of Disjointed Legislation.*
+
+**MSc in Economics (Behavioural Economics and Game Theory)**, University of Amsterdam, 2023–2024 \
+GPA 7.8/10. Thesis: *Make and Break? Four Strategic Voting Games of "Kingmaker" Parties* (supervisor: Prof. Arthur Schram).
+
+**Exchange Semester, Data Science and Economics**, Grinnell College, Spring 2022.
+
+**BSc Liberal Arts and Sciences (Governance, Economics and Development)**, Leiden University College The Hague, 2020–2023 \
+GPA 3.75/4.0, cum laude.
+
+## Public Engagement
+
+**[Room for Discussion](https://roomfordiscussion.com/committee-members/jonathan-kellogg-de-cock-buning/)**, Committee Member & Interviewer, 2023–2024 \
+On-stage interviewer at the University of Amsterdam's flagship student interview platform. Full interview portfolio at the link above.
+
+## Awards
+
+- AI Governance Fellowship, The Hague Effective Altruism / Leiden University College, 2023.
+- World Champion (EFL category), World Universities Debating Championship, 2019.
+
+## Technical skills
+
+R · Stata · Python · LaTeX · Git · GIS · survey design · LLM-assisted text analysis
+
+## Languages
+
+English (native/fluent) · Dutch (native)
+
+## Contact
+
+[jonathan.kellogg@politics.ox.ac.uk](mailto:jonathan.kellogg@politics.ox.ac.uk)

@@ -1,0 +1,71 @@
+/*-- scss:defaults --*/
+
+$primary: #4a2c2a;
+$body-color: #1a1a1a;
+$link-color: #4a2c2a;
+$navbar-bg: #ffffff;
+$navbar-fg: #1a1a1a;
+
+/*-- scss:rules --*/
+
+body {
+  font-family: "Source Serif Pro", Georgia, serif;
+}
+
+h1, h2, h3 {
+  font-family: "Source Serif Pro", Georgia, serif;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+h1 {
+  margin-top: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+h2 {
+  margin-top: 2.5rem;
+  margin-bottom: 0.75rem;
+  font-size: 1.4rem;
+  border-bottom: 1px solid #e5e5e5;
+  padding-bottom: 0.25rem;
+}
+
+a {
+  text-decoration: none;
+  border-bottom: 1px solid rgba(74, 44, 42, 0.3);
+}
+
+a:hover {
+  border-bottom: 1px solid rgba(74, 44, 42, 1);
+}
+
+.navbar {
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.navbar a {
+  border-bottom: none;
+}
+
+.profile-image {
+  border-radius: 50%;
+  width: 180px;
+  height: 180px;
+  object-fit: cover;
+  float: right;
+  margin: 0 0 1rem 2rem;
+}
+
+.paper {
+  margin-bottom: 1.5rem;
+}
+
+.paper-title {
+  font-weight: 600;
+}
+
+.paper-meta {
+  color: #666;
+  font-size: 0.95em;
+}

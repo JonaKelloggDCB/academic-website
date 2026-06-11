@@ -1,0 +1,21 @@
+---
+title: "Jonathan Tjaarda Kellogg"
+pagetitle: "Jonathan Tjaarda Kellogg"
+---
+
+![](profile.jpg){.profile-image fig-alt="Jonathan Kellogg"}
+
+::: {.contact-line}
+DPhil candidate in Politics, University of Oxford \
+[jonathan.kellogg@politics.ox.ac.uk](mailto:jonathan.kellogg@politics.ox.ac.uk) ·
+[GitHub](https://github.com/JonaKelloggDCB) ·
+[Oxford profile](https://www.politics.ox.ac.uk/person/jonathan-tjaarda-kellogg)
+:::
+
+## About
+
+I am a graduate student in Politics at the University of Oxford, transitioning to a DPhil at Balliol College under the supervision of [Ben Ansell](https://www.politics.ox.ac.uk/person/ben-ansell) and [David Rueda](https://www.politics.ox.ac.uk/person/f-david-rueda). My research focuses on comparative political economy, with a secondary interest in research methodology, particularly behavioural and experimental methods.
+
+I am interested in how political institutions shape economic outcomes. My current projects combine survey experiments and large-scale text analysis to study how voters and legislators behave under information frictions.
+
+Before Oxford I read Economics (MSc, Behavioural Economics and Game Theory) at the University of Amsterdam and Liberal Arts and Sciences (BSc, Governance, Economics and Development) at Leiden University College The Hague.

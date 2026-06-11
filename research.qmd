@@ -1,0 +1,27 @@
+---
+title: "Research"
+---
+
+## Research interests
+
+Comparative political economy of advanced democracies; coalition formation and legislative bargaining; redistribution and the political economy of taxation; experimental and computational methods (survey experiments, LLM-assisted text analysis).
+
+## Working papers
+
+::: {.paper}
+**Frankenstein's Bills: The Political Utility of Disjointed Legislation** \
+[MPhil thesis, University of Oxford, Trinity 2026]{.paper-meta}
+
+I treat disjointed legislation as a strategic tool: lawmakers bundle in secondary provisions the public is unlikely to notice. Using new measures of disjointedness for bills in France, the US, and the EU, I find that lobby spending predicts disjointedness, but only when an issue's salience is low.
+
+[Paper (PDF)](Frankensteins_Bills.pdf) · [Code](https://github.com/JonaKelloggDCB/Frankenstein-s-Bill)
+:::
+
+::: {.paper}
+**Tax, What Is It Good For? Perceived Government Efficiency and Redistribution Preferences** \
+[Working paper, 2026]{.paper-meta}
+
+Voters' redistributive preferences may turn not just on fairness but on whether they think government spends competently. I use policy visibility as a proxy for perceived efficiency and exploit a regression-discontinuity around the UK Winter Fuel Payment: visible spending raises willingness to redistribute among British women, the gender asymmetry the theory predicts.
+
+[Paper (PDF)](Tax_What_Is_It_Good_For.pdf) · [Code](https://github.com/JonaKelloggDCB/tax-what-is-it-good-for)
+:::

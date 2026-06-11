@@ -1,0 +1,8 @@
+.quarto/
+.Rproj.user/
+*.Rproj
+.DS_Store
+_freeze/
+
+/.quarto/
+**/*.quarto_ipynb

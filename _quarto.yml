@@ -1,0 +1,37 @@
+project:
+  type: website
+  output-dir: docs
+
+website:
+  title: "Jonathan Kellogg"
+  description: "Academic website of Jonathan Tjaarda Kellogg, DPhil candidate in Politics at the University of Oxford."
+  navbar:
+    right:
+      - href: index.qmd
+        text: Home
+      - href: research.qmd
+        text: Research
+      - href: teaching.qmd
+        text: Teaching
+      - href: cv.qmd
+        text: CV
+  page-footer:
+    left: "© 2026 Jonathan Tjaarda Kellogg"
+    right:
+      - icon: github
+        href: https://github.com/JonaKelloggDCB
+      - icon: envelope
+        href: mailto:jonathan.kellogg@politics.ox.ac.uk
+
+format:
+  html:
+    theme:
+      - cosmo
+      - styles.scss
+    css: styles.css
+    toc: false
+    fontsize: 1.05em
+    linestretch: 1.55
+    mainfont: "Source Serif Pro, Georgia, serif"
+    grid:
+      body-width: 720px
