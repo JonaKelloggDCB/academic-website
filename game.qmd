@@ -16,3 +16,7 @@ IFOP, Datafolha) and are for play, not citation.
   loading="lazy"></iframe>
 
 [Open the game full-screen →](pin-the-headline/index.html)
+
+Just here for the Americans? There's a standalone
+[**US Presidents edition**](https://jonakelloggdcb.github.io/pin-the-presidents/)
+with every president of the polling era, FDR through Biden.
