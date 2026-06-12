@@ -124,6 +124,25 @@
   .pth-level-tag.pth-tag-tutorial { background: rgba(74, 222, 128, 0.15); color: var(--pth-true); }
   .pth-level-tag.pth-tag-expert { background: rgba(248, 113, 113, 0.15); color: var(--pth-bad); }
 
+  /* ---- "Whose curve?" reverse mode ---- */
+  .pth-who-btn {
+    appearance: none; display: block; width: 100%; text-align: left; cursor: pointer;
+    background: var(--pth-card); color: var(--pth-ink);
+    border: 1px solid rgba(255, 209, 102, 0.4); border-radius: var(--pth-radius);
+    padding: 12px 14px; font: inherit; margin: 0 0 12px;
+    transition: transform 0.08s ease, border-color 0.15s ease;
+  }
+  .pth-who-btn:hover { transform: translateY(-1px); border-color: var(--pth-pin); }
+  .pth-who-btn:focus-visible { outline: 3px solid var(--pth-focus); outline-offset: 2px; }
+  .pth-guess-bar { margin-top: 12px; }
+  .pth-select {
+    width: 100%; font: inherit; font-weight: 600; color: var(--pth-ink);
+    padding: 9px 10px; border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.2); background: var(--pth-card-2);
+  }
+  .pth-select:focus-visible { outline: 3px solid var(--pth-focus); outline-offset: 1px; }
+  .pth-select:disabled { opacity: 0.45; }
+
   .pth-sr { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
   @media (max-width: 480px) {
@@ -3112,7 +3131,7 @@
   function clamp(v, lo, hi) { return Math.min(hi, Math.max(lo, v)); }
   function el(tag, attrs, parent) {
     var ns = "http://www.w3.org/2000/svg";
-    var htmlTags = { div: 1, p: 1, button: 1, h2: 1, span: 1 };
+    var htmlTags = { div: 1, p: 1, button: 1, h2: 1, span: 1, select: 1, option: 1 };
     var node = htmlTags[tag]
       ? document.createElement(tag)
       : document.createElementNS(ns, tag);
@@ -3142,6 +3161,12 @@
           text: session.rounds + " round" + (session.rounds === 1 ? "" : "s") + " · best " + session.bestTotal
         }, header);
       }
+      var whoBtn = el("button", { "class": "pth-who-btn", type: "button" }, root);
+      el("p", { "class": "pth-level-leader", text: "🕵️ Whose curve? · guess the leader" }, whoBtn);
+      el("p", { "class": "pth-level-context", text: "The reverse game: five mystery curves, no names. Read the shape alone — every wrong guess tells you whether the real leader took office earlier or later." }, whoBtn);
+      el("span", { "class": "pth-level-tag pth-tag-tutorial", text: "new mode" }, whoBtn);
+      whoBtn.addEventListener("click", function () { buildWhoGame(); });
+
       el("p", {
         "class": "pth-menu-intro",
         text: "You'll see a leader's approval curve with the dates stripped, and a real headline from their time in office. Pin the headline where you think it happened — read the curve's shape, not your memory. Pick a leader:"
@@ -3554,6 +3579,252 @@
       });
 
       startRound();
+    }
+
+    /* ---------------- whose curve? — guess the leader ---------------- */
+    // The reverse game: five unlabeled curves; the player names the leader
+    // from shape alone. Wrong guesses reveal whether the mystery leader took
+    // office earlier or later (by term start), and the dropdown disables the
+    // eliminated chronological range. The x-axis is normalized, so term
+    // length doesn't give the answer away.
+    function buildWhoGame() {
+      var W = 800, H = 360;
+      var PAD = { l: 44, r: 18, t: 20, b: 34 };
+      var plotW = W - PAD.l - PAD.r;
+      var plotH = H - PAD.t - PAD.b;
+
+      // all leaders in term-start order; hints and elimination work on this axis
+      var chrono = levels.slice().sort(function (a, b) {
+        return ts(a.series[0].date) - ts(b.series[0].date);
+      });
+      var roundLevels = shuffled(levels).slice(0, 5);
+      var ci = 0;              // current curve index
+      var results = [];        // { score, band }
+      var phase = "guess";     // "guess" | "revealed" | "done"
+      var guesses = 0;
+      var loIdx = 0, hiIdx = chrono.length - 1; // feasible chronological window
+
+      root.innerHTML = "";
+
+      var header = el("div", { "class": "pth-header" }, root);
+      var back = el("button", { "class": "pth-back", type: "button", text: "← all leaders" }, header);
+      back.addEventListener("click", showMenu);
+      el("span", { "class": "pth-context", text: "Whose curve? · " + chrono.length + " possible leaders" }, header);
+
+      var card = el("div", { "class": "pth-headline-card" }, root);
+      el("div", { "class": "pth-kicker", text: "Whose curve is this? Read the shape — honeymoons, rallies, scandals." }, card);
+      var questionEl = el("p", { "class": "pth-headline", "aria-live": "polite" }, card);
+
+      var chartWrap = el("div", { "class": "pth-chart-wrap" }, root);
+      var svg = el("svg", {
+        "class": "pth-svg pth-locked",
+        viewBox: "0 0 " + W + " " + H,
+        role: "img",
+        "aria-label": "An unlabeled approval curve. Use the dropdown below to guess which leader it belongs to."
+      }, chartWrap);
+      var hintEl = el("div", { "class": "pth-hint" }, chartWrap);
+
+      var live = el("div", { "class": "pth-sr", "aria-live": "polite", role: "status" }, root);
+
+      var guessBar = el("div", { "class": "pth-guess-bar" }, root);
+      var sel = el("select", { "class": "pth-select", "aria-label": "Guess the leader" }, guessBar);
+
+      var controls = el("div", { "class": "pth-controls" }, root);
+      var progress = el("div", { "class": "pth-progress", "aria-label": "Round progress" }, controls);
+      var actionBtn = el("button", { "class": "pth-btn", type: "button", text: "Guess 🕵️" }, controls);
+
+      var feedback = el("div", { "class": "pth-feedback" }, root);
+
+      function drawCurve(level) {
+        svg.innerHTML = "";
+        var defs = el("defs", null, svg);
+        var grad = el("linearGradient", { id: "pth-area-grad-who", x1: "0", y1: "0", x2: "0", y2: "1" }, defs);
+        el("stop", { offset: "0%", "stop-color": "rgba(110,168,254,0.28)" }, grad);
+        el("stop", { offset: "100%", "stop-color": "rgba(110,168,254,0.02)" }, grad);
+
+        var times = level.series.map(function (p) { return ts(p.date); });
+        var t0 = times[0], t1 = times[times.length - 1];
+        var vals = level.series.map(function (p) { return p.approval; });
+        var yLo = Math.max(0, Math.floor((Math.min.apply(null, vals) - 6) / 10) * 10);
+        var yHi = Math.min(100, Math.ceil((Math.max.apply(null, vals) + 6) / 10) * 10);
+        function xOf(t) { return PAD.l + ((t - t0) / (t1 - t0)) * plotW; }
+        function yOf(v) { return PAD.t + (1 - (v - yLo) / (yHi - yLo)) * plotH; }
+
+        for (var gv = yLo; gv <= yHi; gv += 10) {
+          if (gv % 20 !== 0 && gv !== yLo && gv !== yHi) continue;
+          var gy = yOf(gv);
+          el("line", { x1: PAD.l, x2: W - PAD.r, y1: gy, y2: gy, stroke: "var(--pth-grid)", "stroke-width": 1 }, svg);
+          el("text", { x: PAD.l - 8, y: gy + 4, "text-anchor": "end", "font-size": 12, fill: "var(--pth-ink-dim)", text: gv + "%" }, svg);
+        }
+        el("line", { x1: PAD.l, x2: W - PAD.r, y1: H - PAD.b, y2: H - PAD.b, stroke: "rgba(255,255,255,0.18)", "stroke-width": 1.5 }, svg);
+        el("text", { x: W - PAD.r, y: H - PAD.b + 20, "text-anchor": "end", "font-size": 12, fill: "var(--pth-ink-dim)", text: "time → (dates hidden)" }, svg);
+
+        var lineD = "";
+        level.series.forEach(function (p, i) {
+          var x = xOf(times[i]).toFixed(1), y = yOf(p.approval).toFixed(1);
+          lineD += (i === 0 ? "M" : "L") + x + " " + y + " ";
+        });
+        var areaD = lineD + "L" + xOf(t1).toFixed(1) + " " + (H - PAD.b) + " L" + xOf(t0).toFixed(1) + " " + (H - PAD.b) + " Z";
+        el("path", { d: areaD, fill: "url(#pth-area-grad-who)" }, svg);
+        el("path", { d: lineD, fill: "none", stroke: "var(--pth-line)", "stroke-width": 2.5, "stroke-linejoin": "round", "stroke-linecap": "round" }, svg);
+      }
+
+      function rebuildOptions() {
+        sel.innerHTML = "";
+        el("option", { value: "", text: "Guess a leader…", disabled: "disabled", selected: "selected" }, sel);
+        chrono.forEach(function (lv, i) {
+          var attrs = { value: lv.id, text: lv.leader + " — " + lv.context };
+          if (i < loIdx || i > hiIdx) attrs.disabled = "disabled";
+          el("option", attrs, sel);
+        });
+        sel.value = "";
+      }
+
+      function renderProgress() {
+        progress.innerHTML = "";
+        for (var i = 0; i < roundLevels.length; i++) {
+          var cls = "pth-dot";
+          if (i < results.length) cls += " pth-dot-" + results[i].band;
+          else if (i === ci && phase === "guess") cls += " pth-dot-current";
+          el("div", { "class": cls }, progress);
+        }
+      }
+
+      function showCurve() {
+        phase = "guess";
+        guesses = 0;
+        loIdx = 0; hiIdx = chrono.length - 1;
+        drawCurve(roundLevels[ci]);
+        questionEl.textContent = "Which leader's approval curve is this?";
+        hintEl.textContent = "Curve " + (ci + 1) + " of " + roundLevels.length + " · wrong guesses tell you earlier or later (by term start)";
+        feedback.classList.remove("pth-show");
+        rebuildOptions();
+        sel.disabled = false;
+        actionBtn.textContent = "Guess 🕵️";
+        actionBtn.disabled = true;
+        renderProgress();
+        live.textContent = "Curve " + (ci + 1) + " of " + roundLevels.length + ". Guess the leader.";
+      }
+
+      function guess() {
+        if (!sel.value) return;
+        var level = roundLevels[ci];
+        var gIdx = -1, tIdx = -1;
+        chrono.forEach(function (lv, i) {
+          if (lv.id === sel.value) gIdx = i;
+          if (lv.id === level.id) tIdx = i;
+        });
+        guesses++;
+        feedback.innerHTML = "";
+
+        if (gIdx === tIdx) {
+          phase = "revealed";
+          var score = Math.max(0, MAX_PER_PIN - 15 * (guesses - 1));
+          var band = guesses === 1 ? "g" : guesses <= 4 ? "y" : "b";
+          results.push({ score: score, band: band });
+
+          questionEl.textContent = "It's " + level.leader + "! — " + level.context;
+
+          var sl = el("p", { "class": "pth-score-line" }, feedback);
+          sl.textContent = BAND_EMOJI[band] + " " + (guesses === 1 ? "First try!" : "Got it in " + guesses + " guesses.") + " " + score + "/" + MAX_PER_PIN;
+          live.textContent = "Correct: " + level.leader + ". Scored " + score + " out of " + MAX_PER_PIN + ".";
+
+          hintEl.textContent = "";
+          sel.disabled = true;
+          actionBtn.textContent = ci + 1 < roundLevels.length ? "Next curve →" : "See results →";
+          actionBtn.disabled = false;
+        } else {
+          var dirLater = gIdx < tIdx;
+          if (dirLater) loIdx = Math.max(loIdx, gIdx + 1);
+          else hiIdx = Math.min(hiIdx, gIdx - 1);
+          rebuildOptions();
+          actionBtn.disabled = true;
+
+          var sl2 = el("p", { "class": "pth-score-line" }, feedback);
+          sl2.textContent = (dirLater ? "→ Later." : "← Earlier.") +
+            " The mystery leader took office " + (dirLater ? "after " : "before ") +
+            chrono[gIdx].leader + " (" + chrono[gIdx].context + ").";
+          var left = hiIdx - loIdx + 1;
+          el("p", { "class": "pth-note", text: left + " leader" + (left === 1 ? "" : "s") + " still possible — impossible ones are grayed out." }, feedback);
+          live.textContent = "Wrong. The mystery leader took office " + (dirLater ? "later" : "earlier") + " than " + chrono[gIdx].leader + ".";
+        }
+        feedback.classList.add("pth-show");
+        renderProgress();
+      }
+
+      function showWhoEnd() {
+        phase = "done";
+        var total = results.reduce(function (s, r) { return s + r.score; }, 0);
+        session.rounds += 1;
+        session.totalScore += total;
+        session.totalPins += results.length;
+        session.greens += results.filter(function (r) { return r.band === "g"; }).length;
+        if (total > session.bestTotal) session.bestTotal = total;
+
+        var stars = Math.round((total / (results.length * MAX_PER_PIN)) * 5);
+        var starStr = "★".repeat(stars) + "☆".repeat(5 - stars);
+
+        questionEl.textContent = "Round complete!";
+        hintEl.textContent = "";
+        sel.disabled = true;
+
+        feedback.innerHTML = "";
+        var end = el("div", { "class": "pth-end" }, feedback);
+        el("h2", { text: "Whose curve? — round complete" }, end);
+        el("div", { "class": "pth-end-emoji", text: results.map(function (r) { return BAND_EMOJI[r.band]; }).join("") }, end);
+        el("div", { "class": "pth-end-total", text: total + " / " + results.length * MAX_PER_PIN }, end);
+        el("div", { "class": "pth-end-stars", "aria-label": stars + " out of 5 stars", text: starStr }, end);
+        el("p", {
+          "class": "pth-session",
+          text: "Session: " + session.rounds + " round" + (session.rounds === 1 ? "" : "s") +
+            " · best " + session.bestTotal +
+            " · " + session.greens + "/" + session.totalPins + " bullseyes"
+        }, end);
+
+        var actions = el("div", { "class": "pth-end-actions" }, end);
+        var copyBtn = el("button", { "class": "pth-btn", type: "button", text: "Copy result 📋" }, actions);
+        var againBtn = el("button", { "class": "pth-btn pth-btn-ghost", type: "button", text: "New curves 🕵️" }, actions);
+        var menuBtn = el("button", { "class": "pth-btn pth-btn-ghost", type: "button", text: "All leaders" }, actions);
+        var copied = el("div", { "class": "pth-copied", "aria-live": "polite" }, end);
+
+        copyBtn.addEventListener("click", function () {
+          var txt = "📍 Pin the Headline — Whose curve?\n" +
+            results.map(function (r) { return BAND_EMOJI[r.band]; }).join("") + " " + total + "/" + results.length * MAX_PER_PIN + "\n" +
+            "Name the leader from the curve alone: " + SITE_URL;
+          function ok() { copied.textContent = "Copied to clipboard!"; }
+          function fallback() {
+            var ta = document.createElement("textarea");
+            ta.value = txt; ta.style.position = "fixed"; ta.style.opacity = "0";
+            document.body.appendChild(ta); ta.select();
+            try { document.execCommand("copy"); ok(); } catch (e) { copied.textContent = txt; }
+            document.body.removeChild(ta);
+          }
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(txt).then(ok, fallback);
+          } else fallback();
+        });
+        againBtn.addEventListener("click", function () { buildWhoGame(); });
+        menuBtn.addEventListener("click", showMenu);
+
+        feedback.classList.add("pth-show");
+        actionBtn.disabled = true;
+        actionBtn.textContent = "Guess 🕵️";
+        live.textContent = "Round complete. Total score " + total + " out of " + results.length * MAX_PER_PIN + ".";
+      }
+
+      sel.addEventListener("change", function () {
+        if (phase === "guess") actionBtn.disabled = !sel.value;
+      });
+      actionBtn.addEventListener("click", function () {
+        if (phase === "guess") guess();
+        else if (phase === "revealed") {
+          ci += 1;
+          if (ci < roundLevels.length) showCurve();
+          else showWhoEnd();
+        }
+      });
+
+      showCurve();
     }
 
     showMenu();
