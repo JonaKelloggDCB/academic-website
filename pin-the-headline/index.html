@@ -105,7 +105,7 @@
   /* ---- level-select menu ---- */
   .pth-menu-intro { color: var(--pth-ink-dim); font-size: 0.92rem; margin: 2px 0 14px; }
   .pth-pick-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: stretch; }
-  .pth-pick-row .pth-select { flex: 1 1 260px; width: auto; }
+  .pth-pick-row .pth-select { flex: 1 1 220px; width: auto; }
   .pth-level-leader { font-weight: 800; font-size: 1rem; margin: 0 0 2px; }
   .pth-level-context { color: var(--pth-ink-dim); font-size: 0.8rem; margin: 0 0 6px; }
   .pth-level-tag {
@@ -3251,22 +3251,49 @@
 
       el("p", {
         "class": "pth-menu-intro",
-        text: "You'll see a leader's approval curve with the dates stripped, and a real headline from their time in office. Pin the headline where you think it happened — read the curve's shape, not your memory. Each round plays 5 headlines from the leader's pool of 20. Pick a leader:"
+        text: "You'll see a leader's approval curve with the dates stripped, and a real headline from their time in office. Pin the headline where you think it happened — read the curve's shape, not your memory. Each round plays 5 headlines from the leader's pool of 20. Pick a country, then a leader:"
       }, root);
 
-      var pickRow = el("div", { "class": "pth-pick-row" }, root);
-      var sel = el("select", { "class": "pth-select", "aria-label": "Choose a leader" }, pickRow);
-      el("option", { value: "", text: "Choose a leader…", disabled: "disabled", selected: "selected" }, sel);
       var chrono = levels.slice().sort(function (a, b) {
         return ts(a.series[0].date) - ts(b.series[0].date);
       });
+      function countryOf(lv) { return lv.context.split(" · ")[0]; }
+      var countries = [];
       chrono.forEach(function (lv) {
-        el("option", { value: lv.id, text: lv.leader + " — " + lv.context }, sel);
+        var c = countryOf(lv);
+        if (countries.indexOf(c) < 0) countries.push(c);
       });
+      countries.sort();
+
+      var pickRow = el("div", { "class": "pth-pick-row" }, root);
+      var countrySel = el("select", { "class": "pth-select", "aria-label": "Choose a country" }, pickRow);
+      el("option", { value: "", text: "Choose a country…", disabled: "disabled", selected: "selected" }, countrySel);
+      countries.forEach(function (c) {
+        var n = chrono.filter(function (lv) { return countryOf(lv) === c; }).length;
+        el("option", { value: c, text: c + " (" + n + (n === 1 ? " leader" : " leaders") + ")" }, countrySel);
+      });
+
+      var leaderSel = el("select", { "class": "pth-select", "aria-label": "Choose a leader", disabled: "disabled" }, pickRow);
+      el("option", { value: "", text: "Choose a leader…", disabled: "disabled", selected: "selected" }, leaderSel);
+
       var startBtn = el("button", { "class": "pth-btn", type: "button", text: "Start round 📍", disabled: "disabled" }, pickRow);
-      sel.addEventListener("change", function () { startBtn.disabled = !sel.value; });
+
+      countrySel.addEventListener("change", function () {
+        leaderSel.innerHTML = "";
+        el("option", { value: "", text: "Choose a leader…", disabled: "disabled", selected: "selected" }, leaderSel);
+        el("option", { value: "__random__", text: "🎲 Surprise me — any " + countrySel.value + " leader" }, leaderSel);
+        chrono.filter(function (lv) { return countryOf(lv) === countrySel.value; }).forEach(function (lv) {
+          el("option", { value: lv.id, text: lv.leader + " · " + lv.context.replace(countrySel.value + " · ", "") }, leaderSel);
+        });
+        leaderSel.disabled = false;
+        startBtn.disabled = true;
+      });
+      leaderSel.addEventListener("change", function () { startBtn.disabled = !leaderSel.value; });
       startBtn.addEventListener("click", function () {
-        var lv = levels.filter(function (l) { return l.id === sel.value; })[0];
+        var pool = chrono.filter(function (lv) { return countryOf(lv) === countrySel.value; });
+        var lv = leaderSel.value === "__random__"
+          ? pool[Math.floor(Math.random() * pool.length)]
+          : pool.filter(function (l) { return l.id === leaderSel.value; })[0];
         if (lv) buildGame(lv);
       });
     }
