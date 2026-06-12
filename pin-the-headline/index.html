@@ -124,6 +124,24 @@
   .pth-level-tag.pth-tag-tutorial { background: rgba(74, 222, 128, 0.15); color: var(--pth-true); }
   .pth-level-tag.pth-tag-expert { background: rgba(248, 113, 113, 0.15); color: var(--pth-bad); }
 
+  /* ---- random leader with prompt difficulty ---- */
+  .pth-rand-card {
+    background: var(--pth-card); border: 1px solid rgba(255, 209, 102, 0.4);
+    border-radius: var(--pth-radius); padding: 12px 14px; margin: 0 0 12px;
+  }
+  .pth-diff-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+  .pth-diff-btn {
+    flex: 1 1 0; appearance: none; cursor: pointer; font: inherit; font-weight: 800;
+    font-size: 0.88rem; padding: 9px 6px; border-radius: 10px; border: 1px solid transparent;
+    transition: transform 0.08s ease;
+  }
+  .pth-diff-btn:hover { transform: translateY(-1px); }
+  .pth-diff-btn:focus-visible { outline: 3px solid var(--pth-focus); outline-offset: 2px; }
+  .pth-diff-easy { background: rgba(74, 222, 128, 0.12); color: var(--pth-true); border-color: rgba(74, 222, 128, 0.4); }
+  .pth-diff-medium { background: rgba(255, 209, 102, 0.12); color: var(--pth-pin); border-color: rgba(255, 209, 102, 0.4); }
+  .pth-diff-hard { background: rgba(248, 113, 113, 0.12); color: var(--pth-bad); border-color: rgba(248, 113, 113, 0.4); }
+  .pth-diff-hint { color: var(--pth-ink-dim); font-size: 0.74rem; margin: 6px 0 0; }
+
   /* ---- "Whose curve?" reverse mode ---- */
   .pth-who-btn {
     appearance: none; display: block; width: 100%; text-align: left; cursor: pointer;
@@ -3143,6 +3161,64 @@
     return node;
   }
 
+  /* ====================== prompt difficulty ====================== */
+  // Difficulty is a property of the PROMPT, not the leader: how ambiguous the
+  // curve is at the headline's true position. A headline that sits on a unique
+  // spike (9/11) or at the very start or end of a term is easy to place; one on
+  // a long flat stretch that looks like five other stretches is hard. Each
+  // leader's 20-headline pool is split into tiers of ~7 by that score, so
+  // every difficulty always has enough prompts for a 5-headline round.
+  function tieredHeadlines(level) {
+    var times = level.series.map(function (p) { return ts(p.date); });
+    var t0 = times[0], t1 = times[times.length - 1];
+    var vals = level.series.map(function (p) { return p.approval; });
+    function apAt(f) {
+      var t = t0 + f * (t1 - t0);
+      for (var i = 1; i < times.length; i++) {
+        if (t <= times[i]) {
+          var a = (t - times[i - 1]) / (times[i] - times[i - 1]);
+          return vals[i - 1] + a * (vals[i] - vals[i - 1]);
+        }
+      }
+      return vals[vals.length - 1];
+    }
+    var hi = Math.max.apply(null, vals), lo = Math.min.apply(null, vals);
+    var fullRange = Math.max(1, hi - lo);
+    var scored = level.headlines.map(function (h) {
+      var f = clamp((ts(h.date) - t0) / (t1 - t0), 0, 1);
+      var v = apAt(f);
+      var matches = 0, total = 0;
+      for (var i = 0; i <= 240; i++) {
+        var g = i / 240;
+        if (Math.abs(g - f) <= 0.05) continue; // the answer zone itself doesn't count as a look-alike
+        total++;
+        if (Math.abs(apAt(g) - v) <= 4) matches++;
+      }
+      var score = matches / total;               // how much of the curve "looks like" this spot
+      if (f < 0.04 || f > 0.96) score -= 0.35;   // start/end of term: easy anchors
+      if (Math.abs(v - hi) <= 3 || Math.abs(v - lo) <= 3) score -= 0.2; // peaks and troughs stand out
+      // sharp movement just before/after the event is a giveaway even when the
+      // value itself is common — e.g. 9/11 sits at an ordinary ~51%, but the
+      // vertical rocket next to it is unmistakable
+      var wLo = clamp(f - 0.06, 0, 1), wHi = clamp(f + 0.06, 0, 1);
+      var wMin = Infinity, wMax = -Infinity;
+      for (var j = 0; j <= 24; j++) {
+        var wv = apAt(wLo + (j / 24) * (wHi - wLo));
+        if (wv < wMin) wMin = wv;
+        if (wv > wMax) wMax = wv;
+      }
+      score -= clamp((wMax - wMin) / fullRange, 0, 1) * 0.5;
+      return { h: h, s: score };
+    });
+    scored.sort(function (a, b) { return a.s - b.s; });
+    var n = scored.length, cut1 = Math.ceil(n / 3), cut2 = Math.ceil(2 * n / 3);
+    return {
+      easy: scored.slice(0, cut1).map(function (x) { return x.h; }),
+      medium: scored.slice(cut1, cut2).map(function (x) { return x.h; }),
+      hard: scored.slice(cut2).map(function (x) { return x.h; })
+    };
+  }
+
   /* ====================== app ====================== */
   function PinTheHeadline(root, levels) {
     var session = { rounds: 0, bestTotal: 0, totalScore: 0, totalPins: 0, greens: 0 };
@@ -3161,6 +3237,21 @@
           text: session.rounds + " round" + (session.rounds === 1 ? "" : "s") + " · best " + session.bestTotal
         }, header);
       }
+      var randCard = el("div", { "class": "pth-rand-card" }, root);
+      el("p", { "class": "pth-level-leader", text: "🎲 Random leader · pick your difficulty" }, randCard);
+      el("p", { "class": "pth-level-context", text: "We deal you a leader at random; difficulty picks which headlines you face." }, randCard);
+      var diffRow = el("div", { "class": "pth-diff-row" }, randCard);
+      [["easy", "Easy"], ["medium", "Medium"], ["hard", "Hard"]].forEach(function (d) {
+        var b = el("button", { "class": "pth-diff-btn pth-diff-" + d[0], type: "button", text: d[1] }, diffRow);
+        b.addEventListener("click", function () {
+          buildGame(randomLevel(null), { mode: "random", difficulty: d[0] });
+        });
+      });
+      el("p", {
+        "class": "pth-diff-hint",
+        text: "Easy = headlines at famous spikes, peaks and term edges · Medium = in between · Hard = the curve's quiet, ambiguous stretches"
+      }, randCard);
+
       var whoBtn = el("button", { "class": "pth-who-btn", type: "button" }, root);
       el("p", { "class": "pth-level-leader", text: "🕵️ Whose curve? · guess the leader" }, whoBtn);
       el("p", { "class": "pth-level-context", text: "The reverse game: five mystery curves, no names. Read the shape alone — every wrong guess tells you whether the real leader took office earlier or later." }, whoBtn);
@@ -3183,8 +3274,17 @@
       });
     }
 
+    function randomLevel(excludeId) {
+      var pool = levels.filter(function (lv) { return lv.id !== excludeId; });
+      if (!pool.length) pool = levels;
+      return pool[Math.floor(Math.random() * pool.length)];
+    }
+
     /* ---------------- one leader's game ---------------- */
-    function buildGame(level) {
+    function buildGame(level, opts) {
+      opts = opts || { mode: "pick", difficulty: null };
+      var tiers = opts.difficulty ? tieredHeadlines(level) : null;
+
       // --- chart geometry (SVG user units; scales responsively via viewBox) ---
       var W = 800, H = 360;
       var PAD = { l: 44, r: 18, t: 20, b: 34 };
@@ -3227,7 +3327,10 @@
       var header = el("div", { "class": "pth-header" }, root);
       var back = el("button", { "class": "pth-back", type: "button", text: "← all leaders" }, header);
       back.addEventListener("click", showMenu);
-      el("span", { "class": "pth-context", text: level.leader + " · " + level.context }, header);
+      el("span", {
+        "class": "pth-context",
+        text: level.leader + " · " + level.context + (opts.difficulty ? " · " + opts.difficulty + " headlines" : "")
+      }, header);
 
       var headlineCard = el("div", { "class": "pth-headline-card" }, root);
       el("div", { "class": "pth-kicker", text: "When did this happen? Read the curve, not your memory." }, headlineCard);
@@ -3499,7 +3602,8 @@
 
       function shareText() {
         var emoji = results.map(function (r) { return BAND_EMOJI[r.band]; }).join("");
-        return "📍 Pin the Headline — " + level.leader + "\n" +
+        return "📍 Pin the Headline — " + level.leader +
+          (opts.difficulty ? " (" + opts.difficulty + ")" : "") + "\n" +
           emoji + " " + totalScore() + "/" + round.length * MAX_PER_PIN + "\n" +
           "Can you read the curve? " + SITE_URL;
       }
@@ -3535,7 +3639,10 @@
 
         var actions = el("div", { "class": "pth-end-actions" }, end);
         var copyBtn = el("button", { "class": "pth-btn", type: "button", text: "Copy result 📋" }, actions);
-        var againBtn = el("button", { "class": "pth-btn pth-btn-ghost", type: "button", text: "Play again" }, actions);
+        var againBtn = el("button", {
+          "class": "pth-btn pth-btn-ghost", type: "button",
+          text: opts.mode === "random" ? "New leader 🎲" : "Play again"
+        }, actions);
         var menuBtn = el("button", { "class": "pth-btn pth-btn-ghost", type: "button", text: "All leaders" }, actions);
         var copied = el("div", { "class": "pth-copied", "aria-live": "polite" }, end);
 
@@ -3553,7 +3660,10 @@
             navigator.clipboard.writeText(txt).then(ok, fallback);
           } else fallback();
         });
-        againBtn.addEventListener("click", startRound);
+        againBtn.addEventListener("click", function () {
+          if (opts.mode === "random") buildGame(randomLevel(level.id), opts); // re-deal a different leader
+          else startRound();
+        });
         menuBtn.addEventListener("click", showMenu);
 
         feedback.classList.add("pth-show");
@@ -3563,7 +3673,10 @@
       }
 
       function startRound() {
-        round = shuffled(level.headlines).slice(0, 5); // draw 5 from the pool; replays differ
+        // draw 5 from the pool; replays differ. In random mode the pool is the
+        // chosen difficulty tier (~7 prompts) instead of all 20.
+        var pool = tiers ? tiers[opts.difficulty] : level.headlines;
+        round = shuffled(pool).slice(0, Math.min(5, pool.length));
         idx = 0;
         results = [];
         showHeadline();
