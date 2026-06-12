@@ -104,16 +104,8 @@
 
   /* ---- level-select menu ---- */
   .pth-menu-intro { color: var(--pth-ink-dim); font-size: 0.92rem; margin: 2px 0 14px; }
-  .pth-menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .pth-level-btn {
-    appearance: none; text-align: left; cursor: pointer;
-    background: var(--pth-card); color: var(--pth-ink);
-    border: 1px solid rgba(255,255,255,0.07); border-radius: var(--pth-radius);
-    padding: 12px 14px; font: inherit;
-    transition: transform 0.08s ease, border-color 0.15s ease;
-  }
-  .pth-level-btn:hover { transform: translateY(-1px); border-color: var(--pth-pin); }
-  .pth-level-btn:focus-visible { outline: 3px solid var(--pth-focus); outline-offset: 2px; }
+  .pth-pick-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: stretch; }
+  .pth-pick-row .pth-select { flex: 1 1 260px; width: auto; }
   .pth-level-leader { font-weight: 800; font-size: 1rem; margin: 0 0 2px; }
   .pth-level-context { color: var(--pth-ink-dim); font-size: 0.8rem; margin: 0 0 6px; }
   .pth-level-tag {
@@ -167,7 +159,6 @@
     .pth { padding: 10px; }
     .pth-headline { font-size: 1rem; }
     .pth-btn { padding: 12px 18px; } /* bigger touch target */
-    .pth-menu-grid { grid-template-columns: 1fr; }
   }
   @media (prefers-reduced-motion: reduce) {
     .pth * { animation: none !important; transition: none !important; }
@@ -3260,17 +3251,23 @@
 
       el("p", {
         "class": "pth-menu-intro",
-        text: "You'll see a leader's approval curve with the dates stripped, and a real headline from their time in office. Pin the headline where you think it happened — read the curve's shape, not your memory. Pick a leader:"
+        text: "You'll see a leader's approval curve with the dates stripped, and a real headline from their time in office. Pin the headline where you think it happened — read the curve's shape, not your memory. Each round plays 5 headlines from the leader's pool of 20. Pick a leader:"
       }, root);
 
-      var grid = el("div", { "class": "pth-menu-grid", role: "list" }, root);
-      levels.forEach(function (lv) {
-        var btn = el("button", { "class": "pth-level-btn", type: "button", role: "listitem" }, grid);
-        el("p", { "class": "pth-level-leader", text: lv.leader }, btn);
-        el("p", { "class": "pth-level-context", text: lv.context + " · 5 of " + lv.headlines.length + " headlines" }, btn);
-        var diff = lv.difficulty || "moderate";
-        el("span", { "class": "pth-level-tag pth-tag-" + diff, text: diff }, btn);
-        btn.addEventListener("click", function () { buildGame(lv); });
+      var pickRow = el("div", { "class": "pth-pick-row" }, root);
+      var sel = el("select", { "class": "pth-select", "aria-label": "Choose a leader" }, pickRow);
+      el("option", { value: "", text: "Choose a leader…", disabled: "disabled", selected: "selected" }, sel);
+      var chrono = levels.slice().sort(function (a, b) {
+        return ts(a.series[0].date) - ts(b.series[0].date);
+      });
+      chrono.forEach(function (lv) {
+        el("option", { value: lv.id, text: lv.leader + " — " + lv.context }, sel);
+      });
+      var startBtn = el("button", { "class": "pth-btn", type: "button", text: "Start round 📍", disabled: "disabled" }, pickRow);
+      sel.addEventListener("change", function () { startBtn.disabled = !sel.value; });
+      startBtn.addEventListener("click", function () {
+        var lv = levels.filter(function (l) { return l.id === sel.value; })[0];
+        if (lv) buildGame(lv);
       });
     }
 
