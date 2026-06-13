@@ -3820,8 +3820,12 @@
       countrySel.addEventListener("change", function () {
         leaderSel.innerHTML = "";
         el("option", { value: "", text: "Choose a leader…", disabled: "disabled", selected: "selected" }, leaderSel);
-        el("option", { value: "__random__", text: "🎲 Surprise me — any " + countrySel.value + " leader" }, leaderSel);
-        chrono.filter(function (lv) { return countryOf(lv) === countrySel.value; }).forEach(function (lv) {
+        var inCountry = chrono.filter(function (lv) { return countryOf(lv) === countrySel.value; });
+        // only offer "surprise me" when there's actually more than one to pick from
+        if (inCountry.length > 1) {
+          el("option", { value: "__random__", text: "🎲 Surprise me — any " + countrySel.value + " leader" }, leaderSel);
+        }
+        inCountry.forEach(function (lv) {
           el("option", { value: lv.id, text: lv.leader + " · " + lv.context.replace(countrySel.value + " · ", "") }, leaderSel);
         });
         leaderSel.disabled = false;
