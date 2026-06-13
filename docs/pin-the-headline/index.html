@@ -7,28 +7,33 @@
 <style>
   /* ---- Pin the Headline — self-contained styles (all scoped under .pth) ---- */
   .pth {
-    --pth-bg: #11141a;
-    --pth-card: #1a1f29;
-    --pth-card-2: #222937;
-    --pth-ink: #eef1f6;
-    --pth-ink-dim: #9aa5b5;
-    --pth-line: #6ea8fe;
-    --pth-area: rgba(110, 168, 254, 0.12);
-    --pth-grid: rgba(255, 255, 255, 0.08);
-    --pth-pin: #ffd166;
-    --pth-true: #4ade80;
-    --pth-ghost: #8b93a3;
-    --pth-bad: #f87171;
-    --pth-radius: 14px;
-    --pth-focus: #ffd166;
-    color-scheme: dark;
+    --pth-bg: #f3ece0;
+    --pth-card: #fffaf1;
+    --pth-card-2: #efe6d4;
+    --pth-ink: #322e27;
+    --pth-ink-dim: #6f6555;
+    --pth-line: #4361ee;
+    --pth-area: rgba(67, 97, 238, 0.12);
+    --pth-area-top: rgba(67, 97, 238, 0.20);
+    --pth-area-bot: rgba(67, 97, 238, 0.02);
+    --pth-grid: rgba(60, 48, 24, 0.10);
+    --pth-axis: rgba(60, 48, 24, 0.22);
+    --pth-border: rgba(60, 48, 24, 0.14);
+    --pth-pin: #e8990f;
+    --pth-true: #1f8a3c;
+    --pth-ghost: #b4a890;
+    --pth-bad: #d6453f;
+    --pth-radius: 16px;
+    --pth-shadow: 0 1px 2px rgba(60, 45, 20, 0.05), 0 10px 28px rgba(60, 45, 20, 0.08);
+    --pth-focus: #e8990f;
+    color-scheme: light;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     color: var(--pth-ink);
-    background: var(--pth-bg);
+    background: linear-gradient(180deg, #f7f1e7 0%, #efe6d6 100%);
     border-radius: var(--pth-radius);
     max-width: 760px;
     margin: 0 auto;
-    padding: 16px;
+    padding: 18px;
     box-sizing: border-box;
     line-height: 1.45;
   }
@@ -48,7 +53,7 @@
 
   .pth-headline-card {
     background: var(--pth-card);
-    border: 1px solid rgba(255,255,255,0.07);
+    border: 1px solid var(--pth-border);
     border-radius: var(--pth-radius);
     padding: 14px 16px;
     margin-bottom: 12px;
@@ -56,7 +61,7 @@
   .pth-kicker { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--pth-ink-dim); font-weight: 700; margin-bottom: 4px; }
   .pth-headline { font-size: 1.12rem; font-weight: 700; margin: 0; }
 
-  .pth-chart-wrap { position: relative; background: var(--pth-card); border: 1px solid rgba(255,255,255,0.07); border-radius: var(--pth-radius); padding: 8px 8px 4px; }
+  .pth-chart-wrap { position: relative; background: var(--pth-card); border: 1px solid var(--pth-border); border-radius: var(--pth-radius); padding: 8px 8px 4px; }
   .pth-svg { display: block; width: 100%; height: auto; touch-action: none; cursor: crosshair; border-radius: 8px; outline: none; }
   .pth-svg:focus-visible { box-shadow: 0 0 0 3px var(--pth-focus); }
   .pth-svg.pth-locked { cursor: default; }
@@ -65,7 +70,7 @@
 
   .pth-controls { display: flex; gap: 10px; align-items: center; justify-content: space-between; margin-top: 12px; flex-wrap: wrap; }
   .pth-progress { display: flex; gap: 6px; align-items: center; }
-  .pth-dot { width: 11px; height: 11px; border-radius: 50%; background: var(--pth-card-2); border: 1px solid rgba(255,255,255,0.15); }
+  .pth-dot { width: 11px; height: 11px; border-radius: 50%; background: var(--pth-card-2); border: 1px solid var(--pth-border); }
   .pth-dot.pth-dot-current { border-color: var(--pth-pin); }
   .pth-dot.pth-dot-g { background: #22c55e; border-color: #22c55e; }
   .pth-dot.pth-dot-y { background: #eab308; border-color: #eab308; }
@@ -84,7 +89,7 @@
 
   .pth-feedback {
     margin-top: 12px; padding: 12px 16px; border-radius: var(--pth-radius);
-    background: var(--pth-card); border: 1px solid rgba(255,255,255,0.07);
+    background: var(--pth-card); border: 1px solid var(--pth-border);
     display: none;
   }
   .pth-feedback.pth-show { display: block; animation: pth-rise 0.3s ease; }
@@ -148,12 +153,17 @@
   .pth-select {
     width: 100%; font: inherit; font-weight: 600; color: var(--pth-ink);
     padding: 9px 10px; border-radius: 10px;
-    border: 1px solid rgba(255,255,255,0.2); background: var(--pth-card-2);
+    border: 1px solid var(--pth-border); background: var(--pth-card-2);
   }
   .pth-select:focus-visible { outline: 3px solid var(--pth-focus); outline-offset: 1px; }
   .pth-select:disabled { opacity: 0.45; }
 
   .pth-sr { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+  /* ---- soft depth so the light theme reads as warm, not flat ---- */
+  .pth-headline-card, .pth-chart-wrap, .pth-feedback, .pth-rand-card, .pth-who-btn { box-shadow: var(--pth-shadow); }
+  .pth-btn:not(.pth-btn-ghost) { box-shadow: 0 2px 10px rgba(232, 153, 15, 0.30); }
+  .pth-btn:not(.pth-btn-ghost):hover:not(:disabled) { box-shadow: 0 4px 16px rgba(232, 153, 15, 0.38); }
 
   @media (max-width: 480px) {
     .pth { padding: 10px; }
@@ -165,7 +175,7 @@
   }
 </style>
 </head>
-<body style="margin:0; background:#0b0d12; padding:24px 8px;">
+<body style="margin:0; background:#e9e0d0; padding:24px 8px;">
 
 <div id="pin-the-headline"></div>
 
@@ -3913,8 +3923,8 @@
       /* ---------- SVG layers ---------- */
       var defs = el("defs", null, svg);
       var grad = el("linearGradient", { id: "pth-area-grad", x1: "0", y1: "0", x2: "0", y2: "1" }, defs);
-      el("stop", { offset: "0%", "stop-color": "rgba(110,168,254,0.28)" }, grad);
-      el("stop", { offset: "100%", "stop-color": "rgba(110,168,254,0.02)" }, grad);
+      el("stop", { offset: "0%", "stop-color": "var(--pth-area-top)" }, grad);
+      el("stop", { offset: "100%", "stop-color": "var(--pth-area-bot)" }, grad);
 
       var gGrid = el("g", null, svg);
       var gCurve = el("g", null, svg);
@@ -3930,7 +3940,7 @@
         el("text", { x: PAD.l - 8, y: gy + 4, "text-anchor": "end", "font-size": 12, fill: "var(--pth-ink-dim)", text: gv + "%" }, gGrid);
       }
       // unlabeled time axis with a direction hint only
-      el("line", { x1: PAD.l, x2: W - PAD.r, y1: H - PAD.b, y2: H - PAD.b, stroke: "rgba(255,255,255,0.18)", "stroke-width": 1.5 }, gGrid);
+      el("line", { x1: PAD.l, x2: W - PAD.r, y1: H - PAD.b, y2: H - PAD.b, stroke: "var(--pth-axis)", "stroke-width": 1.5 }, gGrid);
       el("text", { x: W - PAD.r, y: H - PAD.b + 20, "text-anchor": "end", "font-size": 12, fill: "var(--pth-ink-dim)", text: "time → (dates hidden)" }, gGrid);
 
       // curve + area
@@ -4308,8 +4318,8 @@
         svg.innerHTML = "";
         var defs = el("defs", null, svg);
         var grad = el("linearGradient", { id: "pth-area-grad-who", x1: "0", y1: "0", x2: "0", y2: "1" }, defs);
-        el("stop", { offset: "0%", "stop-color": "rgba(110,168,254,0.28)" }, grad);
-        el("stop", { offset: "100%", "stop-color": "rgba(110,168,254,0.02)" }, grad);
+        el("stop", { offset: "0%", "stop-color": "var(--pth-area-top)" }, grad);
+        el("stop", { offset: "100%", "stop-color": "var(--pth-area-bot)" }, grad);
 
         var times = level.series.map(function (p) { return ts(p.date); });
         var t0 = times[0], t1 = times[times.length - 1];
@@ -4325,7 +4335,7 @@
           el("line", { x1: PAD.l, x2: W - PAD.r, y1: gy, y2: gy, stroke: "var(--pth-grid)", "stroke-width": 1 }, svg);
           el("text", { x: PAD.l - 8, y: gy + 4, "text-anchor": "end", "font-size": 12, fill: "var(--pth-ink-dim)", text: gv + "%" }, svg);
         }
-        el("line", { x1: PAD.l, x2: W - PAD.r, y1: H - PAD.b, y2: H - PAD.b, stroke: "rgba(255,255,255,0.18)", "stroke-width": 1.5 }, svg);
+        el("line", { x1: PAD.l, x2: W - PAD.r, y1: H - PAD.b, y2: H - PAD.b, stroke: "var(--pth-axis)", "stroke-width": 1.5 }, svg);
         el("text", { x: W - PAD.r, y: H - PAD.b + 20, "text-anchor": "end", "font-size": 12, fill: "var(--pth-ink-dim)", text: "time → (dates hidden)" }, svg);
 
         var lineD = "";
