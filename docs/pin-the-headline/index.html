@@ -3632,6 +3632,55 @@
     return node;
   }
 
+  /* ====================== country geography ====================== */
+  // Capital-city coordinates for every country that appears in a level's
+  // context string. "Whose curve?" uses these to tell the player how far the
+  // mystery leader's country is from the country they just guessed.
+  var COUNTRY_GEO = {
+    "United States": [38.9, -77.04],
+    "United Kingdom": [51.51, -0.13],
+    "France": [48.85, 2.35],
+    "Germany": [52.52, 13.40],
+    "Italy": [41.90, 12.50],
+    "Spain": [40.42, -3.70],
+    "Russia": [55.75, 37.62],
+    "Ukraine": [50.45, 30.52],
+    "Canada": [45.42, -75.70],
+    "Mexico": [19.43, -99.13],
+    "Brazil": [-15.78, -47.93],
+    "Argentina": [-34.61, -58.38],
+    "Japan": [35.68, 139.69],
+    "South Korea": [37.55, 126.99],
+    "Australia": [-35.28, 149.13],
+    "New Zealand": [-41.29, 174.78]
+  };
+  // Great-circle distance (km) plus an 8-point compass arrow pointing from
+  // country `a` toward country `b`. Returns null if either is unmapped.
+  function geoBetween(a, b) {
+    var ga = COUNTRY_GEO[a], gb = COUNTRY_GEO[b];
+    if (!ga || !gb) return null;
+    if (a === b) return { km: 0, arrow: "🎯", same: true };
+    var R = 6371, toR = Math.PI / 180;
+    var lat1 = ga[0] * toR, lat2 = gb[0] * toR;
+    var dLat = (gb[0] - ga[0]) * toR, dLon = (gb[1] - ga[1]) * toR;
+    var h = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    var km = Math.round(2 * R * Math.asin(Math.min(1, Math.sqrt(h))));
+    var y = Math.sin(dLon) * Math.cos(lat2);
+    var x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
+    var brg = (Math.atan2(y, x) / toR + 360) % 360;
+    var arrows = ["⬆️", "↗️", "➡️", "↘️", "⬇️", "↙️", "⬅️", "↖️"];
+    return { km: km, arrow: arrows[Math.round(brg / 45) % 8], same: false };
+  }
+  // A "warmer/colder" descriptor for a country-to-country distance.
+  function geoWarmth(km) {
+    if (km < 1500) return "🔥 red hot";
+    if (km < 4000) return "🌤️ warm";
+    if (km < 8000) return "🧭 cold";
+    if (km < 14000) return "❄️ freezing";
+    return "🧊 polar opposite";
+  }
+
   /* ====================== prompt difficulty ====================== */
   // Difficulty is a property of the PROMPT, not the leader: how ambiguous the
   // curve is at the headline's true position. A headline that sits on a unique
@@ -3725,7 +3774,7 @@
 
       var whoBtn = el("button", { "class": "pth-who-btn", type: "button" }, root);
       el("p", { "class": "pth-level-leader", text: "🕵️ Whose curve? · guess the leader" }, whoBtn);
-      el("p", { "class": "pth-level-context", text: "The reverse game: five mystery curves, no names. Read the shape alone — every wrong guess tells you whether the real leader took office earlier or later." }, whoBtn);
+      el("p", { "class": "pth-level-context", text: "The reverse game: five mystery curves, no names. Read the shape alone — every wrong guess tells you whether the real leader took office earlier or later, and how far their country is from your guess." }, whoBtn);
       el("span", { "class": "pth-level-tag pth-tag-tutorial", text: "new mode" }, whoBtn);
       whoBtn.addEventListener("click", function () { buildWhoGame(); });
 
@@ -4201,9 +4250,11 @@
     /* ---------------- whose curve? — guess the leader ---------------- */
     // The reverse game: five unlabeled curves; the player names the leader
     // from shape alone. Wrong guesses reveal whether the mystery leader took
-    // office earlier or later (by term start), and the dropdown disables the
-    // eliminated chronological range. The x-axis is normalized, so term
-    // length doesn't give the answer away.
+    // office earlier or later (by term start) AND how far the guessed country
+    // is from the real one (great-circle distance + compass arrow + a
+    // warmer/colder descriptor, Worldle-style). Every leader stays selectable
+    // — nothing is grayed out. The x-axis is normalized, so term length
+    // doesn't give the answer away.
     function buildWhoGame() {
       var W = 800, H = 360;
       var PAD = { l: 44, r: 18, t: 20, b: 34 };
@@ -4214,6 +4265,7 @@
       var chrono = levels.slice().sort(function (a, b) {
         return ts(a.series[0].date) - ts(b.series[0].date);
       });
+      function whoCountry(lv) { return lv.context.split(" · ")[0]; }
       var roundLevels = shuffled(levels).slice(0, 5);
       var ci = 0;              // current curve index
       var results = [];        // { score, band }
@@ -4290,9 +4342,9 @@
         sel.innerHTML = "";
         el("option", { value: "", text: "Guess a leader…", disabled: "disabled", selected: "selected" }, sel);
         chrono.forEach(function (lv, i) {
-          var attrs = { value: lv.id, text: lv.leader + " — " + lv.context };
-          if (i < loIdx || i > hiIdx) attrs.disabled = "disabled";
-          el("option", attrs, sel);
+          // Every leader stays selectable — nothing is grayed out, even once
+          // the earlier/later clues have logically ruled it out.
+          el("option", { value: lv.id, text: lv.leader + " — " + lv.context }, sel);
         });
         sel.value = "";
       }
@@ -4313,7 +4365,7 @@
         loIdx = 0; hiIdx = chrono.length - 1;
         drawCurve(roundLevels[ci]);
         questionEl.textContent = "Which leader's approval curve is this?";
-        hintEl.textContent = "Curve " + (ci + 1) + " of " + roundLevels.length + " · wrong guesses tell you earlier or later (by term start)";
+        hintEl.textContent = "Curve " + (ci + 1) + " of " + roundLevels.length + " · wrong guesses reveal earlier/later (by term start) and how far that country is";
         feedback.classList.remove("pth-show");
         rebuildOptions();
         sel.disabled = false;
@@ -4361,9 +4413,16 @@
           sl2.textContent = (dirLater ? "→ Later." : "← Earlier.") +
             " The mystery leader took office " + (dirLater ? "after " : "before ") +
             chrono[gIdx].leader + " (" + chrono[gIdx].context + ").";
+          var geo = geoBetween(whoCountry(chrono[gIdx]), whoCountry(level));
+          if (geo) {
+            el("p", { "class": "pth-note", text: geo.same
+              ? "🎯 Right country — wrong leader."
+              : "🌍 The mystery leader's country is about " + geo.km.toLocaleString() + " km " + geo.arrow + " from " + whoCountry(chrono[gIdx]) + " · " + geoWarmth(geo.km) }, feedback);
+          }
           var left = hiIdx - loIdx + 1;
-          el("p", { "class": "pth-note", text: left + " leader" + (left === 1 ? "" : "s") + " still possible — impossible ones are grayed out." }, feedback);
-          live.textContent = "Wrong. The mystery leader took office " + (dirLater ? "later" : "earlier") + " than " + chrono[gIdx].leader + ".";
+          el("p", { "class": "pth-note", text: left + " leader" + (left === 1 ? "" : "s") + " still fit the earlier/later clues — but you can guess any of them." }, feedback);
+          live.textContent = "Wrong. The mystery leader took office " + (dirLater ? "later" : "earlier") + " than " + chrono[gIdx].leader +
+            (geo && !geo.same ? ", whose country is about " + geo.km + " kilometres away." : ".");
         }
         feedback.classList.add("pth-show");
         renderProgress();
